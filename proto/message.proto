@@ -1,0 +1,15 @@
+syntax = "proto3";
+package chatServer;
+
+
+message PlayerInfo{
+    optional int64 stamp = 1;
+    optional string nickname = 2;
+    optional string password = 3;
+    optional int64 signUpTime = 4;
+}
+
+message BlackList{
+    repeated int64 uid = 1;
+    repeated string nickname = 2;    
+}
