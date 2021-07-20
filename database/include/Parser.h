@@ -44,13 +44,6 @@ private:
     // void parseAddBlackList();
     // void parseDelBlackList();
 
-
-    void fillHead(const int (&head)[3]);
-
-    void fillHead(int length, int status, int uid);
-
-    static int now();
-
     void successResponse(std::shared_ptr<PlayerInfo> info);
 
     void failResponse(int status);

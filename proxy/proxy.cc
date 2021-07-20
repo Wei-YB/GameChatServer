@@ -3,6 +3,7 @@
 #include <muduo/net/TcpServer.h>
 #include <muduo/net/EventLoop.h>
 #include <muduo/net/InetAddress.h>
+#include <muduo/net/TcpClient.h>
 #include <muduo/base/Logging.h>
 
 
@@ -29,8 +30,10 @@ private:
     int message_length_;
 };
 
+
+
 int main() {
     EventLoop loop;
     TcpServer server(&loop, InetAddress(12345), "proxy");
-
+    // each thread will alloc a client to database and chat server
 }
