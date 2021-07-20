@@ -21,6 +21,7 @@ message Message{
         SERVER_BROADCAST = 2;         
     }
     int32 sender = 1;
-    string msg = 2;
-    MessageType type = 3;
+    int32 receiver = 2;
+    string msg = 3;
+    MessageType type = 4;
 }
