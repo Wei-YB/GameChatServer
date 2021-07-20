@@ -50,6 +50,7 @@ constexpr Message::Message(
   ::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized)
   : msg_(&::PROTOBUF_NAMESPACE_ID::internal::fixed_address_empty_string)
   , sender_(0)
+  , receiver_(0)
   , type_(0)
 {}
 struct MessageDefaultTypeInternal {
@@ -89,6 +90,7 @@ const ::PROTOBUF_NAMESPACE_ID::uint32 TableStruct_message_2eproto::offsets[] PRO
   ~0u,  // no _oneof_case_
   ~0u,  // no _weak_field_map_
   PROTOBUF_FIELD_OFFSET(::chatServer::Message, sender_),
+  PROTOBUF_FIELD_OFFSET(::chatServer::Message, receiver_),
   PROTOBUF_FIELD_OFFSET(::chatServer::Message, msg_),
   PROTOBUF_FIELD_OFFSET(::chatServer::Message, type_),
 };
@@ -108,15 +110,16 @@ const char descriptor_table_protodef_message_2eproto[] PROTOBUF_SECTION_VARIABLE
   "\n\rmessage.proto\022\nchatServer\"S\n\nPlayerInf"
   "o\022\r\n\005stamp\030\001 \001(\005\022\020\n\010nickname\030\002 \001(\t\022\020\n\010pa"
   "ssword\030\003 \001(\t\022\022\n\nsignUpTime\030\004 \001(\005\"*\n\tBlac"
-  "kList\022\013\n\003uid\030\001 \003(\003\022\020\n\010nickname\030\002 \003(\t\"\231\001\n"
-  "\007Message\022\016\n\006sender\030\001 \001(\005\022\013\n\003msg\030\002 \001(\t\022-\n"
-  "\004type\030\003 \001(\0162\037.chatServer.Message.Message"
-  "Type\"B\n\013MessageType\022\010\n\004CHAT\020\000\022\023\n\017LOBBY_B"
-  "ROADCAST\020\001\022\024\n\020SERVER_BROADCAST\020\002b\006proto3"
+  "kList\022\013\n\003uid\030\001 \003(\003\022\020\n\010nickname\030\002 \003(\t\"\253\001\n"
+  "\007Message\022\016\n\006sender\030\001 \001(\005\022\020\n\010receiver\030\002 \001"
+  "(\005\022\013\n\003msg\030\003 \001(\t\022-\n\004type\030\004 \001(\0162\037.chatServ"
+  "er.Message.MessageType\"B\n\013MessageType\022\010\n"
+  "\004CHAT\020\000\022\023\n\017LOBBY_BROADCAST\020\001\022\024\n\020SERVER_B"
+  "ROADCAST\020\002b\006proto3"
   ;
 static ::PROTOBUF_NAMESPACE_ID::internal::once_flag descriptor_table_message_2eproto_once;
 const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable descriptor_table_message_2eproto = {
-  false, false, 320, descriptor_table_protodef_message_2eproto, "message.proto", 
+  false, false, 338, descriptor_table_protodef_message_2eproto, "message.proto", 
   &descriptor_table_message_2eproto_once, nullptr, 0, 3,
   schemas, file_default_instances, TableStruct_message_2eproto::offsets,
   file_level_metadata_message_2eproto, file_level_enum_descriptors_message_2eproto, file_level_service_descriptors_message_2eproto,
@@ -775,18 +778,25 @@ const char* Message::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::in
           CHK_(ptr);
         } else goto handle_unusual;
         continue;
-      // string msg = 2;
+      // int32 receiver = 2;
       case 2:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 18)) {
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 16)) {
+          receiver_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
+          CHK_(ptr);
+        } else goto handle_unusual;
+        continue;
+      // string msg = 3;
+      case 3:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 26)) {
           auto str = _internal_mutable_msg();
           ptr = ::PROTOBUF_NAMESPACE_ID::internal::InlineGreedyStringParser(str, ptr, ctx);
           CHK_(::PROTOBUF_NAMESPACE_ID::internal::VerifyUTF8(str, "chatServer.Message.msg"));
           CHK_(ptr);
         } else goto handle_unusual;
         continue;
-      // .chatServer.Message.MessageType type = 3;
-      case 3:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 24)) {
+      // .chatServer.Message.MessageType type = 4;
+      case 4:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 32)) {
           ::PROTOBUF_NAMESPACE_ID::uint64 val = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
           CHK_(ptr);
           _internal_set_type(static_cast<::chatServer::Message_MessageType>(val));
@@ -827,21 +837,27 @@ failure:
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteInt32ToArray(1, this->_internal_sender(), target);
   }
 
-  // string msg = 2;
+  // int32 receiver = 2;
+  if (this->_internal_receiver() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteInt32ToArray(2, this->_internal_receiver(), target);
+  }
+
+  // string msg = 3;
   if (!this->_internal_msg().empty()) {
     ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
       this->_internal_msg().data(), static_cast<int>(this->_internal_msg().length()),
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
       "chatServer.Message.msg");
     target = stream->WriteStringMaybeAliased(
-        2, this->_internal_msg(), target);
+        3, this->_internal_msg(), target);
   }
 
-  // .chatServer.Message.MessageType type = 3;
+  // .chatServer.Message.MessageType type = 4;
   if (this->_internal_type() != 0) {
     target = stream->EnsureSpace(target);
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteEnumToArray(
-      3, this->_internal_type(), target);
+      4, this->_internal_type(), target);
   }
 
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
@@ -860,7 +876,7 @@ size_t Message::ByteSizeLong() const {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  // string msg = 2;
+  // string msg = 3;
   if (!this->_internal_msg().empty()) {
     total_size += 1 +
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
@@ -874,7 +890,14 @@ size_t Message::ByteSizeLong() const {
         this->_internal_sender());
   }
 
-  // .chatServer.Message.MessageType type = 3;
+  // int32 receiver = 2;
+  if (this->_internal_receiver() != 0) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::Int32Size(
+        this->_internal_receiver());
+  }
+
+  // .chatServer.Message.MessageType type = 4;
   if (this->_internal_type() != 0) {
     total_size += 1 +
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::EnumSize(this->_internal_type());
@@ -913,6 +936,9 @@ void Message::MergeFrom(const Message& from) {
   }
   if (from._internal_sender() != 0) {
     _internal_set_sender(from._internal_sender());
+  }
+  if (from._internal_receiver() != 0) {
+    _internal_set_receiver(from._internal_receiver());
   }
   if (from._internal_type() != 0) {
     _internal_set_type(from._internal_type());

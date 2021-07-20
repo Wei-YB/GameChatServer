@@ -608,11 +608,12 @@ class Message final :
   // accessors -------------------------------------------------------
 
   enum : int {
-    kMsgFieldNumber = 2,
+    kMsgFieldNumber = 3,
     kSenderFieldNumber = 1,
-    kTypeFieldNumber = 3,
+    kReceiverFieldNumber = 2,
+    kTypeFieldNumber = 4,
   };
-  // string msg = 2;
+  // string msg = 3;
   void clear_msg();
   const std::string& msg() const;
   template <typename ArgT0 = const std::string&, typename... ArgT>
@@ -635,7 +636,16 @@ class Message final :
   void _internal_set_sender(::PROTOBUF_NAMESPACE_ID::int32 value);
   public:
 
-  // .chatServer.Message.MessageType type = 3;
+  // int32 receiver = 2;
+  void clear_receiver();
+  ::PROTOBUF_NAMESPACE_ID::int32 receiver() const;
+  void set_receiver(::PROTOBUF_NAMESPACE_ID::int32 value);
+  private:
+  ::PROTOBUF_NAMESPACE_ID::int32 _internal_receiver() const;
+  void _internal_set_receiver(::PROTOBUF_NAMESPACE_ID::int32 value);
+  public:
+
+  // .chatServer.Message.MessageType type = 4;
   void clear_type();
   ::chatServer::Message_MessageType type() const;
   void set_type(::chatServer::Message_MessageType value);
@@ -653,6 +663,7 @@ class Message final :
   typedef void DestructorSkippable_;
   ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr msg_;
   ::PROTOBUF_NAMESPACE_ID::int32 sender_;
+  ::PROTOBUF_NAMESPACE_ID::int32 receiver_;
   int type_;
   mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   friend struct ::TableStruct_message_2eproto;
@@ -950,7 +961,27 @@ inline void Message::set_sender(::PROTOBUF_NAMESPACE_ID::int32 value) {
   // @@protoc_insertion_point(field_set:chatServer.Message.sender)
 }
 
-// string msg = 2;
+// int32 receiver = 2;
+inline void Message::clear_receiver() {
+  receiver_ = 0;
+}
+inline ::PROTOBUF_NAMESPACE_ID::int32 Message::_internal_receiver() const {
+  return receiver_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::int32 Message::receiver() const {
+  // @@protoc_insertion_point(field_get:chatServer.Message.receiver)
+  return _internal_receiver();
+}
+inline void Message::_internal_set_receiver(::PROTOBUF_NAMESPACE_ID::int32 value) {
+  
+  receiver_ = value;
+}
+inline void Message::set_receiver(::PROTOBUF_NAMESPACE_ID::int32 value) {
+  _internal_set_receiver(value);
+  // @@protoc_insertion_point(field_set:chatServer.Message.receiver)
+}
+
+// string msg = 3;
 inline void Message::clear_msg() {
   msg_.ClearToEmpty();
 }
@@ -996,7 +1027,7 @@ inline void Message::set_allocated_msg(std::string* msg) {
   // @@protoc_insertion_point(field_set_allocated:chatServer.Message.msg)
 }
 
-// .chatServer.Message.MessageType type = 3;
+// .chatServer.Message.MessageType type = 4;
 inline void Message::clear_type() {
   type_ = 0;
 }
