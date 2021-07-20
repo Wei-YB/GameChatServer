@@ -30,6 +30,7 @@
 #include <google/protobuf/message.h>
 #include <google/protobuf/repeated_field.h>  // IWYU pragma: export
 #include <google/protobuf/extension_set.h>  // IWYU pragma: export
+#include <google/protobuf/generated_enum_reflection.h>
 #include <google/protobuf/unknown_field_set.h>
 // @@protoc_insertion_point(includes)
 #include <google/protobuf/port_def.inc>
@@ -46,7 +47,7 @@ struct TableStruct_message_2eproto {
     PROTOBUF_SECTION_VARIABLE(protodesc_cold);
   static const ::PROTOBUF_NAMESPACE_ID::internal::AuxiliaryParseTableField aux[]
     PROTOBUF_SECTION_VARIABLE(protodesc_cold);
-  static const ::PROTOBUF_NAMESPACE_ID::internal::ParseTable schema[2]
+  static const ::PROTOBUF_NAMESPACE_ID::internal::ParseTable schema[3]
     PROTOBUF_SECTION_VARIABLE(protodesc_cold);
   static const ::PROTOBUF_NAMESPACE_ID::internal::FieldMetadata field_metadata[];
   static const ::PROTOBUF_NAMESPACE_ID::internal::SerializationTable serialization_table[];
@@ -57,16 +58,46 @@ namespace chatServer {
 class BlackList;
 struct BlackListDefaultTypeInternal;
 extern BlackListDefaultTypeInternal _BlackList_default_instance_;
+class Message;
+struct MessageDefaultTypeInternal;
+extern MessageDefaultTypeInternal _Message_default_instance_;
 class PlayerInfo;
 struct PlayerInfoDefaultTypeInternal;
 extern PlayerInfoDefaultTypeInternal _PlayerInfo_default_instance_;
 }  // namespace chatServer
 PROTOBUF_NAMESPACE_OPEN
 template<> ::chatServer::BlackList* Arena::CreateMaybeMessage<::chatServer::BlackList>(Arena*);
+template<> ::chatServer::Message* Arena::CreateMaybeMessage<::chatServer::Message>(Arena*);
 template<> ::chatServer::PlayerInfo* Arena::CreateMaybeMessage<::chatServer::PlayerInfo>(Arena*);
 PROTOBUF_NAMESPACE_CLOSE
 namespace chatServer {
 
+enum Message_MessageType : int {
+  Message_MessageType_CHAT = 0,
+  Message_MessageType_LOBBY_BROADCAST = 1,
+  Message_MessageType_SERVER_BROADCAST = 2,
+  Message_MessageType_Message_MessageType_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<::PROTOBUF_NAMESPACE_ID::int32>::min(),
+  Message_MessageType_Message_MessageType_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<::PROTOBUF_NAMESPACE_ID::int32>::max()
+};
+bool Message_MessageType_IsValid(int value);
+constexpr Message_MessageType Message_MessageType_MessageType_MIN = Message_MessageType_CHAT;
+constexpr Message_MessageType Message_MessageType_MessageType_MAX = Message_MessageType_SERVER_BROADCAST;
+constexpr int Message_MessageType_MessageType_ARRAYSIZE = Message_MessageType_MessageType_MAX + 1;
+
+const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* Message_MessageType_descriptor();
+template<typename T>
+inline const std::string& Message_MessageType_Name(T enum_t_value) {
+  static_assert(::std::is_same<T, Message_MessageType>::value ||
+    ::std::is_integral<T>::value,
+    "Incorrect type passed to function Message_MessageType_Name.");
+  return ::PROTOBUF_NAMESPACE_ID::internal::NameOfEnum(
+    Message_MessageType_descriptor(), enum_t_value);
+}
+inline bool Message_MessageType_Parse(
+    ::PROTOBUF_NAMESPACE_ID::ConstStringParam name, Message_MessageType* value) {
+  return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<Message_MessageType>(
+    Message_MessageType_descriptor(), name, value);
+}
 // ===================================================================
 
 class PlayerInfo final :
@@ -189,11 +220,7 @@ class PlayerInfo final :
     kStampFieldNumber = 1,
     kSignUpTimeFieldNumber = 4,
   };
-  // optional string nickname = 2;
-  bool has_nickname() const;
-  private:
-  bool _internal_has_nickname() const;
-  public:
+  // string nickname = 2;
   void clear_nickname();
   const std::string& nickname() const;
   template <typename ArgT0 = const std::string&, typename... ArgT>
@@ -207,11 +234,7 @@ class PlayerInfo final :
   std::string* _internal_mutable_nickname();
   public:
 
-  // optional string password = 3;
-  bool has_password() const;
-  private:
-  bool _internal_has_password() const;
-  public:
+  // string password = 3;
   void clear_password();
   const std::string& password() const;
   template <typename ArgT0 = const std::string&, typename... ArgT>
@@ -225,30 +248,22 @@ class PlayerInfo final :
   std::string* _internal_mutable_password();
   public:
 
-  // optional int64 stamp = 1;
-  bool has_stamp() const;
-  private:
-  bool _internal_has_stamp() const;
-  public:
+  // int32 stamp = 1;
   void clear_stamp();
-  ::PROTOBUF_NAMESPACE_ID::int64 stamp() const;
-  void set_stamp(::PROTOBUF_NAMESPACE_ID::int64 value);
+  ::PROTOBUF_NAMESPACE_ID::int32 stamp() const;
+  void set_stamp(::PROTOBUF_NAMESPACE_ID::int32 value);
   private:
-  ::PROTOBUF_NAMESPACE_ID::int64 _internal_stamp() const;
-  void _internal_set_stamp(::PROTOBUF_NAMESPACE_ID::int64 value);
+  ::PROTOBUF_NAMESPACE_ID::int32 _internal_stamp() const;
+  void _internal_set_stamp(::PROTOBUF_NAMESPACE_ID::int32 value);
   public:
 
-  // optional int64 signUpTime = 4;
-  bool has_signuptime() const;
-  private:
-  bool _internal_has_signuptime() const;
-  public:
+  // int32 signUpTime = 4;
   void clear_signuptime();
-  ::PROTOBUF_NAMESPACE_ID::int64 signuptime() const;
-  void set_signuptime(::PROTOBUF_NAMESPACE_ID::int64 value);
+  ::PROTOBUF_NAMESPACE_ID::int32 signuptime() const;
+  void set_signuptime(::PROTOBUF_NAMESPACE_ID::int32 value);
   private:
-  ::PROTOBUF_NAMESPACE_ID::int64 _internal_signuptime() const;
-  void _internal_set_signuptime(::PROTOBUF_NAMESPACE_ID::int64 value);
+  ::PROTOBUF_NAMESPACE_ID::int32 _internal_signuptime() const;
+  void _internal_set_signuptime(::PROTOBUF_NAMESPACE_ID::int32 value);
   public:
 
   // @@protoc_insertion_point(class_scope:chatServer.PlayerInfo)
@@ -258,12 +273,11 @@ class PlayerInfo final :
   template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
   typedef void InternalArenaConstructable_;
   typedef void DestructorSkippable_;
-  ::PROTOBUF_NAMESPACE_ID::internal::HasBits<1> _has_bits_;
-  mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr nickname_;
   ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr password_;
-  ::PROTOBUF_NAMESPACE_ID::int64 stamp_;
-  ::PROTOBUF_NAMESPACE_ID::int64 signuptime_;
+  ::PROTOBUF_NAMESPACE_ID::int32 stamp_;
+  ::PROTOBUF_NAMESPACE_ID::int32 signuptime_;
+  mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   friend struct ::TableStruct_message_2eproto;
 };
 // -------------------------------------------------------------------
@@ -445,6 +459,204 @@ class BlackList final :
   mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   friend struct ::TableStruct_message_2eproto;
 };
+// -------------------------------------------------------------------
+
+class Message final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:chatServer.Message) */ {
+ public:
+  inline Message() : Message(nullptr) {}
+  ~Message() override;
+  explicit constexpr Message(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  Message(const Message& from);
+  Message(Message&& from) noexcept
+    : Message() {
+    *this = ::std::move(from);
+  }
+
+  inline Message& operator=(const Message& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline Message& operator=(Message&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const Message& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const Message* internal_default_instance() {
+    return reinterpret_cast<const Message*>(
+               &_Message_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    2;
+
+  friend void swap(Message& a, Message& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(Message* other) {
+    if (other == this) return;
+    if (GetOwningArena() == other->GetOwningArena()) {
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(Message* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  inline Message* New() const final {
+    return new Message();
+  }
+
+  Message* New(::PROTOBUF_NAMESPACE_ID::Arena* arena) const final {
+    return CreateMaybeMessage<Message>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const Message& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom(const Message& from);
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message*to, const ::PROTOBUF_NAMESPACE_ID::Message&from);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  ::PROTOBUF_NAMESPACE_ID::uint8* _InternalSerialize(
+      ::PROTOBUF_NAMESPACE_ID::uint8* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _cached_size_.Get(); }
+
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(Message* other);
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "chatServer.Message";
+  }
+  protected:
+  explicit Message(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  private:
+  static void ArenaDtor(void* object);
+  inline void RegisterArenaDtor(::PROTOBUF_NAMESPACE_ID::Arena* arena);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  typedef Message_MessageType MessageType;
+  static constexpr MessageType CHAT =
+    Message_MessageType_CHAT;
+  static constexpr MessageType LOBBY_BROADCAST =
+    Message_MessageType_LOBBY_BROADCAST;
+  static constexpr MessageType SERVER_BROADCAST =
+    Message_MessageType_SERVER_BROADCAST;
+  static inline bool MessageType_IsValid(int value) {
+    return Message_MessageType_IsValid(value);
+  }
+  static constexpr MessageType MessageType_MIN =
+    Message_MessageType_MessageType_MIN;
+  static constexpr MessageType MessageType_MAX =
+    Message_MessageType_MessageType_MAX;
+  static constexpr int MessageType_ARRAYSIZE =
+    Message_MessageType_MessageType_ARRAYSIZE;
+  static inline const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor*
+  MessageType_descriptor() {
+    return Message_MessageType_descriptor();
+  }
+  template<typename T>
+  static inline const std::string& MessageType_Name(T enum_t_value) {
+    static_assert(::std::is_same<T, MessageType>::value ||
+      ::std::is_integral<T>::value,
+      "Incorrect type passed to function MessageType_Name.");
+    return Message_MessageType_Name(enum_t_value);
+  }
+  static inline bool MessageType_Parse(::PROTOBUF_NAMESPACE_ID::ConstStringParam name,
+      MessageType* value) {
+    return Message_MessageType_Parse(name, value);
+  }
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kMsgFieldNumber = 2,
+    kSenderFieldNumber = 1,
+    kTypeFieldNumber = 3,
+  };
+  // string msg = 2;
+  void clear_msg();
+  const std::string& msg() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_msg(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_msg();
+  PROTOBUF_MUST_USE_RESULT std::string* release_msg();
+  void set_allocated_msg(std::string* msg);
+  private:
+  const std::string& _internal_msg() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_msg(const std::string& value);
+  std::string* _internal_mutable_msg();
+  public:
+
+  // int32 sender = 1;
+  void clear_sender();
+  ::PROTOBUF_NAMESPACE_ID::int32 sender() const;
+  void set_sender(::PROTOBUF_NAMESPACE_ID::int32 value);
+  private:
+  ::PROTOBUF_NAMESPACE_ID::int32 _internal_sender() const;
+  void _internal_set_sender(::PROTOBUF_NAMESPACE_ID::int32 value);
+  public:
+
+  // .chatServer.Message.MessageType type = 3;
+  void clear_type();
+  ::chatServer::Message_MessageType type() const;
+  void set_type(::chatServer::Message_MessageType value);
+  private:
+  ::chatServer::Message_MessageType _internal_type() const;
+  void _internal_set_type(::chatServer::Message_MessageType value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:chatServer.Message)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr msg_;
+  ::PROTOBUF_NAMESPACE_ID::int32 sender_;
+  int type_;
+  mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  friend struct ::TableStruct_message_2eproto;
+};
 // ===================================================================
 
 
@@ -456,45 +668,29 @@ class BlackList final :
 #endif  // __GNUC__
 // PlayerInfo
 
-// optional int64 stamp = 1;
-inline bool PlayerInfo::_internal_has_stamp() const {
-  bool value = (_has_bits_[0] & 0x00000004u) != 0;
-  return value;
-}
-inline bool PlayerInfo::has_stamp() const {
-  return _internal_has_stamp();
-}
+// int32 stamp = 1;
 inline void PlayerInfo::clear_stamp() {
-  stamp_ = int64_t{0};
-  _has_bits_[0] &= ~0x00000004u;
+  stamp_ = 0;
 }
-inline ::PROTOBUF_NAMESPACE_ID::int64 PlayerInfo::_internal_stamp() const {
+inline ::PROTOBUF_NAMESPACE_ID::int32 PlayerInfo::_internal_stamp() const {
   return stamp_;
 }
-inline ::PROTOBUF_NAMESPACE_ID::int64 PlayerInfo::stamp() const {
+inline ::PROTOBUF_NAMESPACE_ID::int32 PlayerInfo::stamp() const {
   // @@protoc_insertion_point(field_get:chatServer.PlayerInfo.stamp)
   return _internal_stamp();
 }
-inline void PlayerInfo::_internal_set_stamp(::PROTOBUF_NAMESPACE_ID::int64 value) {
-  _has_bits_[0] |= 0x00000004u;
+inline void PlayerInfo::_internal_set_stamp(::PROTOBUF_NAMESPACE_ID::int32 value) {
+  
   stamp_ = value;
 }
-inline void PlayerInfo::set_stamp(::PROTOBUF_NAMESPACE_ID::int64 value) {
+inline void PlayerInfo::set_stamp(::PROTOBUF_NAMESPACE_ID::int32 value) {
   _internal_set_stamp(value);
   // @@protoc_insertion_point(field_set:chatServer.PlayerInfo.stamp)
 }
 
-// optional string nickname = 2;
-inline bool PlayerInfo::_internal_has_nickname() const {
-  bool value = (_has_bits_[0] & 0x00000001u) != 0;
-  return value;
-}
-inline bool PlayerInfo::has_nickname() const {
-  return _internal_has_nickname();
-}
+// string nickname = 2;
 inline void PlayerInfo::clear_nickname() {
   nickname_.ClearToEmpty();
-  _has_bits_[0] &= ~0x00000001u;
 }
 inline const std::string& PlayerInfo::nickname() const {
   // @@protoc_insertion_point(field_get:chatServer.PlayerInfo.nickname)
@@ -503,7 +699,7 @@ inline const std::string& PlayerInfo::nickname() const {
 template <typename ArgT0, typename... ArgT>
 inline PROTOBUF_ALWAYS_INLINE
 void PlayerInfo::set_nickname(ArgT0&& arg0, ArgT... args) {
- _has_bits_[0] |= 0x00000001u;
+ 
  nickname_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
   // @@protoc_insertion_point(field_set:chatServer.PlayerInfo.nickname)
 }
@@ -516,43 +712,31 @@ inline const std::string& PlayerInfo::_internal_nickname() const {
   return nickname_.Get();
 }
 inline void PlayerInfo::_internal_set_nickname(const std::string& value) {
-  _has_bits_[0] |= 0x00000001u;
+  
   nickname_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, value, GetArenaForAllocation());
 }
 inline std::string* PlayerInfo::_internal_mutable_nickname() {
-  _has_bits_[0] |= 0x00000001u;
+  
   return nickname_.Mutable(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, GetArenaForAllocation());
 }
 inline std::string* PlayerInfo::release_nickname() {
   // @@protoc_insertion_point(field_release:chatServer.PlayerInfo.nickname)
-  if (!_internal_has_nickname()) {
-    return nullptr;
-  }
-  _has_bits_[0] &= ~0x00000001u;
-  return nickname_.ReleaseNonDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArenaForAllocation());
+  return nickname_.Release(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArenaForAllocation());
 }
 inline void PlayerInfo::set_allocated_nickname(std::string* nickname) {
   if (nickname != nullptr) {
-    _has_bits_[0] |= 0x00000001u;
+    
   } else {
-    _has_bits_[0] &= ~0x00000001u;
+    
   }
   nickname_.SetAllocated(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), nickname,
       GetArenaForAllocation());
   // @@protoc_insertion_point(field_set_allocated:chatServer.PlayerInfo.nickname)
 }
 
-// optional string password = 3;
-inline bool PlayerInfo::_internal_has_password() const {
-  bool value = (_has_bits_[0] & 0x00000002u) != 0;
-  return value;
-}
-inline bool PlayerInfo::has_password() const {
-  return _internal_has_password();
-}
+// string password = 3;
 inline void PlayerInfo::clear_password() {
   password_.ClearToEmpty();
-  _has_bits_[0] &= ~0x00000002u;
 }
 inline const std::string& PlayerInfo::password() const {
   // @@protoc_insertion_point(field_get:chatServer.PlayerInfo.password)
@@ -561,7 +745,7 @@ inline const std::string& PlayerInfo::password() const {
 template <typename ArgT0, typename... ArgT>
 inline PROTOBUF_ALWAYS_INLINE
 void PlayerInfo::set_password(ArgT0&& arg0, ArgT... args) {
- _has_bits_[0] |= 0x00000002u;
+ 
  password_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
   // @@protoc_insertion_point(field_set:chatServer.PlayerInfo.password)
 }
@@ -574,56 +758,44 @@ inline const std::string& PlayerInfo::_internal_password() const {
   return password_.Get();
 }
 inline void PlayerInfo::_internal_set_password(const std::string& value) {
-  _has_bits_[0] |= 0x00000002u;
+  
   password_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, value, GetArenaForAllocation());
 }
 inline std::string* PlayerInfo::_internal_mutable_password() {
-  _has_bits_[0] |= 0x00000002u;
+  
   return password_.Mutable(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, GetArenaForAllocation());
 }
 inline std::string* PlayerInfo::release_password() {
   // @@protoc_insertion_point(field_release:chatServer.PlayerInfo.password)
-  if (!_internal_has_password()) {
-    return nullptr;
-  }
-  _has_bits_[0] &= ~0x00000002u;
-  return password_.ReleaseNonDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArenaForAllocation());
+  return password_.Release(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArenaForAllocation());
 }
 inline void PlayerInfo::set_allocated_password(std::string* password) {
   if (password != nullptr) {
-    _has_bits_[0] |= 0x00000002u;
+    
   } else {
-    _has_bits_[0] &= ~0x00000002u;
+    
   }
   password_.SetAllocated(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), password,
       GetArenaForAllocation());
   // @@protoc_insertion_point(field_set_allocated:chatServer.PlayerInfo.password)
 }
 
-// optional int64 signUpTime = 4;
-inline bool PlayerInfo::_internal_has_signuptime() const {
-  bool value = (_has_bits_[0] & 0x00000008u) != 0;
-  return value;
-}
-inline bool PlayerInfo::has_signuptime() const {
-  return _internal_has_signuptime();
-}
+// int32 signUpTime = 4;
 inline void PlayerInfo::clear_signuptime() {
-  signuptime_ = int64_t{0};
-  _has_bits_[0] &= ~0x00000008u;
+  signuptime_ = 0;
 }
-inline ::PROTOBUF_NAMESPACE_ID::int64 PlayerInfo::_internal_signuptime() const {
+inline ::PROTOBUF_NAMESPACE_ID::int32 PlayerInfo::_internal_signuptime() const {
   return signuptime_;
 }
-inline ::PROTOBUF_NAMESPACE_ID::int64 PlayerInfo::signuptime() const {
+inline ::PROTOBUF_NAMESPACE_ID::int32 PlayerInfo::signuptime() const {
   // @@protoc_insertion_point(field_get:chatServer.PlayerInfo.signUpTime)
   return _internal_signuptime();
 }
-inline void PlayerInfo::_internal_set_signuptime(::PROTOBUF_NAMESPACE_ID::int64 value) {
-  _has_bits_[0] |= 0x00000008u;
+inline void PlayerInfo::_internal_set_signuptime(::PROTOBUF_NAMESPACE_ID::int32 value) {
+  
   signuptime_ = value;
 }
-inline void PlayerInfo::set_signuptime(::PROTOBUF_NAMESPACE_ID::int64 value) {
+inline void PlayerInfo::set_signuptime(::PROTOBUF_NAMESPACE_ID::int32 value) {
   _internal_set_signuptime(value);
   // @@protoc_insertion_point(field_set:chatServer.PlayerInfo.signUpTime)
 }
@@ -754,15 +926,117 @@ BlackList::mutable_nickname() {
   return &nickname_;
 }
 
+// -------------------------------------------------------------------
+
+// Message
+
+// int32 sender = 1;
+inline void Message::clear_sender() {
+  sender_ = 0;
+}
+inline ::PROTOBUF_NAMESPACE_ID::int32 Message::_internal_sender() const {
+  return sender_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::int32 Message::sender() const {
+  // @@protoc_insertion_point(field_get:chatServer.Message.sender)
+  return _internal_sender();
+}
+inline void Message::_internal_set_sender(::PROTOBUF_NAMESPACE_ID::int32 value) {
+  
+  sender_ = value;
+}
+inline void Message::set_sender(::PROTOBUF_NAMESPACE_ID::int32 value) {
+  _internal_set_sender(value);
+  // @@protoc_insertion_point(field_set:chatServer.Message.sender)
+}
+
+// string msg = 2;
+inline void Message::clear_msg() {
+  msg_.ClearToEmpty();
+}
+inline const std::string& Message::msg() const {
+  // @@protoc_insertion_point(field_get:chatServer.Message.msg)
+  return _internal_msg();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void Message::set_msg(ArgT0&& arg0, ArgT... args) {
+ 
+ msg_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:chatServer.Message.msg)
+}
+inline std::string* Message::mutable_msg() {
+  std::string* _s = _internal_mutable_msg();
+  // @@protoc_insertion_point(field_mutable:chatServer.Message.msg)
+  return _s;
+}
+inline const std::string& Message::_internal_msg() const {
+  return msg_.Get();
+}
+inline void Message::_internal_set_msg(const std::string& value) {
+  
+  msg_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, value, GetArenaForAllocation());
+}
+inline std::string* Message::_internal_mutable_msg() {
+  
+  return msg_.Mutable(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, GetArenaForAllocation());
+}
+inline std::string* Message::release_msg() {
+  // @@protoc_insertion_point(field_release:chatServer.Message.msg)
+  return msg_.Release(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArenaForAllocation());
+}
+inline void Message::set_allocated_msg(std::string* msg) {
+  if (msg != nullptr) {
+    
+  } else {
+    
+  }
+  msg_.SetAllocated(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), msg,
+      GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set_allocated:chatServer.Message.msg)
+}
+
+// .chatServer.Message.MessageType type = 3;
+inline void Message::clear_type() {
+  type_ = 0;
+}
+inline ::chatServer::Message_MessageType Message::_internal_type() const {
+  return static_cast< ::chatServer::Message_MessageType >(type_);
+}
+inline ::chatServer::Message_MessageType Message::type() const {
+  // @@protoc_insertion_point(field_get:chatServer.Message.type)
+  return _internal_type();
+}
+inline void Message::_internal_set_type(::chatServer::Message_MessageType value) {
+  
+  type_ = value;
+}
+inline void Message::set_type(::chatServer::Message_MessageType value) {
+  _internal_set_type(value);
+  // @@protoc_insertion_point(field_set:chatServer.Message.type)
+}
+
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
+// -------------------------------------------------------------------
+
 // -------------------------------------------------------------------
 
 
 // @@protoc_insertion_point(namespace_scope)
 
 }  // namespace chatServer
+
+PROTOBUF_NAMESPACE_OPEN
+
+template <> struct is_proto_enum< ::chatServer::Message_MessageType> : ::std::true_type {};
+template <>
+inline const EnumDescriptor* GetEnumDescriptor< ::chatServer::Message_MessageType>() {
+  return ::chatServer::Message_MessageType_descriptor();
+}
+
+PROTOBUF_NAMESPACE_CLOSE
 
 // @@protoc_insertion_point(global_scope)
 

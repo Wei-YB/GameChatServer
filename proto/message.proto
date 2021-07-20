@@ -3,13 +3,24 @@ package chatServer;
 
 
 message PlayerInfo{
-    optional int64 stamp = 1;
-    optional string nickname = 2;
-    optional string password = 3;
-    optional int64 signUpTime = 4;
+    int32 stamp = 1;
+    string nickname = 2;
+    string password = 3;
+    int32 signUpTime = 4;
 }
 
 message BlackList{
     repeated int64 uid = 1;
     repeated string nickname = 2;    
+}
+
+message Message{
+    enum MessageType{
+        CHAT = 0;
+        LOBBY_BROADCAST = 1;
+        SERVER_BROADCAST = 2;         
+    }
+    int32 sender = 1;
+    string msg = 2;
+    MessageType type = 3;
 }
