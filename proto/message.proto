@@ -3,25 +3,34 @@ package chatServer;
 
 
 message PlayerInfo{
-    int32 stamp = 1;
+    int32 uid = 1;
     string nickname = 2;
     string password = 3;
     int32 signUpTime = 4;
+    int32 area = 5;
+    int32 rank = 6;
 }
 
-message BlackList{
-    repeated int64 uid = 1;
-    repeated string nickname = 2;    
+message PlayerList{
+    repeated PlayerInfo players = 1;    
 }
 
 message Message{
     enum MessageType{
-        CHAT = 0;
-        LOBBY_BROADCAST = 1;
-        SERVER_BROADCAST = 2;         
+        ONLINE_CHAT = 0;
+        OFFLINE_CHAT = 1;
+        LOBBY_BROADCAST = 2;
+        SERVER_BROADCAST = 3;   
+        ONLINE = 4;
+        OFFLINE = 5;
     }
-    int32 sender = 1;
-    int32 receiver = 2;
-    string msg = 3;
-    MessageType type = 4;
+    MessageType type = 1;
+    int32 stamp = 2;
+    int32 sender = 3;
+    int32 receiver = 4;
+    string msg = 5;
+}
+
+message MessageList{
+    repeated Message messages = 1;
 }
