@@ -56,20 +56,6 @@ void Parser::parseInfo(std::shared_ptr<PlayerInfo> info) {
     }, "LRANGE %d:player 0 -1", uid_);
 }
 
-void Parser::fillHead(const int (&head)[3]) {
-    memcpy(buffer_, head, sizeof head);
-}
-
-void Parser::fillHead(int length, int status, int uid) {
-    int head[3] = {length, status, uid};
-    fillHead(head);
-}
-
-int Parser::now() {
-    return std::chrono::duration_cast<std::chrono::milliseconds>(
-        std::chrono::system_clock::now().time_since_epoch()).count();
-}
-
 void Parser::successResponse(std::shared_ptr<PlayerInfo> info) {
     sendResponse(0, info);
 }
@@ -80,14 +66,14 @@ void Parser::failResponse(int status) {
 
 void Parser::sendResponse(int status) {
     LOG_INFO << "relpy with status = " << status;
-    fillHead({0, status, -1});
+    chatServer::fillHead({0, status, -1}, buffer_);
     conn_->send(buffer_, sizeof(int[3]));
 }
 
 void Parser::sendResponse(int status, std::shared_ptr<PlayerInfo> info) {
     LOG_INFO << "relpy with status = " << status;
     const auto info_str = info->SerializeAsString();
-    fillHead(info_str.length(), 0, uid_);
+    chatServer::fillHead(info_str.length(), 0, uid_, buffer_);
     memcpy(buffer_ + sizeof(int[3]), info_str.c_str(), info_str.size());
     if (this->conn_.use_count() == 0) {
         LOG_ERROR << "bad connection";
@@ -149,7 +135,7 @@ std::shared_ptr<chatServer::PlayerInfo> Parser::getPlayerInfo(Buffer* buffer) co
 }
 
 void Parser::parseSignUp(std::shared_ptr<PlayerInfo> info) {
-    info->set_signuptime(now());
+    info->set_signuptime(chatServer::now());
     redis_client->command([this, info](auto, redisReply* reply) {
                               assert(reply->type == REDIS_REPLY_INTEGER);
                               if (reply->integer) {

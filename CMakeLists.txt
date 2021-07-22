@@ -11,6 +11,8 @@ add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/third-party/muduo")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/base")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/chat")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/database")
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/lobby")
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/proxy")
 
 # add_executable (GameChatServer "GameChatServer.cpp" "GameChatServer.h" )
 
