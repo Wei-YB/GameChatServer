@@ -19,8 +19,8 @@ static const auto* sign_up_cmd =
     "redis.call('INCR', 'UID');"
     "local uid = redis.call('GET', 'UID');"
     "redis.call('SET', KEYS[1]..':uid', uid);"
-    "redis.call('LPUSH', uid..':player', KEYS[1], KEYS[2], KEYS[3]);"
-    "return 1;";
+    "redis.call('LPUSH', uid..':player', uid, KEYS[1], KEYS[2], KEYS[3], KEYS[4]);"
+    "return uid;";
 
 // no necessary to use lua script
 // auto info_cmd = "";
@@ -85,19 +85,25 @@ void Parser::disConnect() {
 void Parser::parseSignUp(std::shared_ptr<PlayerInfo> info) {
     info->set_signuptime(chatServer::now());
     redis_client->command([this, info, request_head = header_](auto, redisReply* reply) mutable {
-                              assert(reply->type == REDIS_REPLY_INTEGER);
-                              if (reply->integer) {
+                              // assert(reply->type == REDIS_REPLY_INTEGER);
+                              if (reply->type == REDIS_REPLY_STRING) {
                                   request_head.setOk();
+                                  info->set_uid(std::stoi(reply->str));
                                   response(formatMessage(request_head, info));
                                   LOG_DEBUG << "username: " << info->nickname() << "success sign up";
+                                  return;
                               }
-                              else {
+                              if (reply->type == REDIS_REPLY_INTEGER)
+                              {
                                   LOG_DEBUG << "username: " << info->nickname() << " already used";
-                                  request_head.setFail();
-                                  response(formatMessage(request_head));
+                              }else {
+                                  LOG_ERROR <<"redis error";
                               }
-                          }, "EVAL %s %d %s %s %d", sign_up_cmd, 3,
-                          info->nickname().c_str(), info->password().c_str(), info->signuptime());
+                              request_head.setFail();
+                              response(formatMessage(request_head));
+
+                          }, "EVAL %s %d %s %s %d %d", sign_up_cmd, 4,
+                          info->nickname().c_str(), info->password().c_str(), info->signuptime(), info->area());
 }
 
 void Parser::parseLogin(std::shared_ptr<PlayerInfo> info) {

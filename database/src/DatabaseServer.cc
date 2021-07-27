@@ -5,25 +5,33 @@
 #include <muduo/net/TcpServer.h>
 #include <muduo/net/EventLoop.h>
 
+#include "Config.h"
 #include "message.pb.h"
 #include "muduo/base/Logging.h"
+#include "muduo/base/AsyncLogging.h"
 
 using hiredis::Hiredis;
 using chatServer::PlayerInfo;
-using chatServer::BlackList;
+using chatServer::PlayerList;
 
 using namespace muduo::net;
 using namespace chatServer::database;
 
 
+muduo::AsyncLogging* g_asyncLog = NULL;
+
+void asyncOutput(const char* msg, int len)
+{
+    g_asyncLog->append(msg, len);
+}
+
 // how to create redis client for each loop
-int main() {
-    muduo::g_logLevel = muduo::Logger::DEBUG;
+int main(int argc, char* argv[]) {
+    daemon(1, 0);
+
     EventLoop loop;
-    Hiredis   client(&loop, InetAddress("127.0.0.1", 6379));
-    client.connect();
-    TcpServer server(&loop, InetAddress(12345), "Database");
-    server.setThreadNum(8);
+
+    TcpServer                             server(&loop, InetAddress(12345), "Database");
 
     server.setThreadInitCallback([](auto* loop) {
         redis_client = new Hiredis(loop, InetAddress("127.0.0.1", 6379));
@@ -48,6 +56,13 @@ int main() {
 
 
     LOG_INFO << "server start at 0.0.0.0:12345";
+
+    
+
+    g_asyncLog = new muduo::AsyncLogging("Logger", 1024 * 1024, 1);
+    g_asyncLog->start();
+    muduo::Logger::setOutput(asyncOutput);
+
 
     server.start();
     loop.loop();

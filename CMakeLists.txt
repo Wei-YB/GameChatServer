@@ -13,6 +13,7 @@ add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/chat")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/database")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/lobby")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/proxy")
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/client")
 
 # add_executable (GameChatServer "GameChatServer.cpp" "GameChatServer.h" )
 

@@ -7,4 +7,4 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include")
 
 link_libraries(muduo_base muduo_net Base pthread protobuf protoc buffer)
 
-add_executable (ProxyServer "proxy.cc")
+add_executable (ProxyServer "proxy.cc" "ProxyParser.cc" "ThreadEnvironment.cc")

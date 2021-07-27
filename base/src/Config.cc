@@ -5,7 +5,7 @@
 #include <sys/stat.h>
 
 using namespace std;
-using namespace base;
+using namespace chatServer;
 
 std::string parseKey(const string& str, int& index) {
     while (index < str.size() && str[index] == ' ')

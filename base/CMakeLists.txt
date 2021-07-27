@@ -4,7 +4,7 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../third-party/muduo")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../proto")
 
-link_libraries(pthread muduo_net muduo_base protobuf protoc)
+link_libraries(pthread muduo_net muduo_base protobuf protoc hiredis_static)
 
 file(GLOB BASE_SCOURE "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cc" )
 

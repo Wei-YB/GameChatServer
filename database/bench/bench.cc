@@ -2,11 +2,13 @@
 #include <muduo/net/TcpServer.h>
 #include <muduo/net/TcpClient.h>
 #include <message.pb.h>
+#include <Header.h>
+
 using namespace muduo::net;
 
 int cnt = 0;
 
-char buffer[1024];
+char messageBuffer[1024];
 int messageLen;
 
 std::chrono::time_point<std::chrono::system_clock> start_point;
@@ -15,7 +17,7 @@ void finishFunc() {
     static int finishClient = 0;
     finishClient++;
     auto endpoint = std::chrono::system_clock::now();
-    auto time_cost = std::chrono::duration_cast<std::chrono::microseconds>(endpoint - start_point);
+    auto time_cost = std::chrono::duration_cast<std::chrono::milliseconds>(endpoint - start_point);
     if(finishClient == 10) {
         std::cout << " finish the test with time = " << time_cost.count()<< std::endl;
         exit(0);
@@ -27,12 +29,14 @@ int main() {
 
     chatServer::PlayerInfo info;
     info.set_nickname("owen");
-    info.set_stamp(0);
+    // info.set_stamp(0);
     auto message = info.SerializeAsString();
-    int head[3] = { message.size(), 0, 0 };
-    memcpy(buffer, head, sizeof head);
-    memcpy(buffer + 12, message.c_str(), message.size());
-    messageLen = 12 + message.length();
+    chatServer::Header header;
+    header.data_length = message.size();
+    header.request_type = static_cast<int>(chatServer::RequestType::LOGIN);
+    auto next = header.fill(messageBuffer);
+    memcpy(next, message.c_str(), message.size());
+    messageLen = header.request_length();
 
     std::vector<TcpClient*> clients;
 
@@ -44,7 +48,7 @@ int main() {
             {
                 int message_cnt = 0;
                 connPtr->setContext(message_cnt);
-                connPtr->send(buffer, messageLen);
+                connPtr->send(messageBuffer, messageLen);
             }else if(connPtr->disconnected()) {
                 // do nothing;
             }
@@ -57,7 +61,7 @@ int main() {
                 finishFunc();
                 return;
             }
-            connPtr->send(buffer, messageLen);
+            connPtr->send(messageBuffer, messageLen);
             ++(*val);
         });
         client->connect();

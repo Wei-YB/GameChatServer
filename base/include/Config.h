@@ -3,7 +3,7 @@
 #include <unordered_map>
 #include <vector>
 
-namespace base {
+namespace chatServer {
 class Config {
 public:
     using string = std::string;
