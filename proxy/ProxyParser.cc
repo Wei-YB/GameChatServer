@@ -7,6 +7,7 @@ ProxyParser::ProxyParser(const muduo::net::TcpConnectionPtr& connPtr): BasicPars
 }
 
 void ProxyParser::parseData(muduo::net::Buffer* buffer) {
+    LOG_DEBUG << "try to parse the data with buffer size is "<< buffer->readableBytes();
     switch (header_.requestType()) {
     case chatServer::RequestType::SIGN_UP:
         parseSignUp(buffer);
@@ -16,6 +17,7 @@ void ProxyParser::parseData(muduo::net::Buffer* buffer) {
         break;
     case chatServer::RequestType::CHAT:
         parseNormalRequest(buffer);
+        break;
     default:
         buffer->retrieve(header_.request_length());
     }

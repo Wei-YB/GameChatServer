@@ -51,17 +51,24 @@ void ThreadEnvironment::onChatServerMessage(Buffer* buffer) {
         LOG_INFO << "receive from chat server: " << header.toString();
         auto uid = header.uid;
         auto stamp = header.stamp;
-        if (login_requests.count(stamp)) {
-            auto [origin_stamp, client_conn] = login_requests[stamp];
-            login_requests.erase(stamp);
-            header.stamp = origin_stamp;
-            if (auto conn = client_conn.lock()) {
-                auto [str, len] = chatServer::formatMessage(header, buffer->peek() + sizeof header);
-                conn->send(str, len);
-                LOG_INFO << "send " << len << " bytes to client";
-                boost::any_cast<ProxyParser>(conn->getMutableContext())->setLogin();
+        if (header.request_type <= 0) { // this is a response
+            if (login_requests.count(stamp)) {
+                auto [origin_stamp, client_conn] = login_requests[stamp];
+                login_requests.erase(stamp);
+                header.stamp = origin_stamp;
+                login_clients.insert({ header.uid, client_conn });
+                if (auto conn = client_conn.lock()) {
+                    auto [str, len] = chatServer::formatMessage(header, buffer->peek() + sizeof header);
+                    conn->send(str, len);
+                    LOG_INFO << "send " << len << " bytes to client";
+                    boost::any_cast<ProxyParser>(conn->getMutableContext())->setLogin();
+                }
             }
-        }else {
+        }else if(login_clients.count(header.uid)){ // this is a request
+            auto client_conn = login_clients[uid].lock();
+            client_conn->send(buffer->peek(), header.request_length());
+        }
+        else {
             LOG_ERROR << "invalid response to client";
         }
         buffer->retrieve(header.request_length());

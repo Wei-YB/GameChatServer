@@ -7,6 +7,7 @@
 #include "BasicParser.h"
 #include "Header.h"
 #include "message.pb.h"
+#include "Lobby.h"
 
 
 using namespace chatServer::chat;

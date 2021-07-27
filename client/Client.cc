@@ -19,12 +19,14 @@ auto logger = spdlog::basic_logger_mt("client", "logs/log.txt");
 
 using namespace std;
 using chatServer::PlayerInfo;
+using chatServer::Message;
 using namespace chatServer;
 
 stCoRoutine_t* input_routine;
 stCoRoutine_t* output_routine;
 
 int g_conn;
+int g_uid;
 
 vector<string> splitBySpace(const std::string& str) {
     vector<string> result;
@@ -88,6 +90,25 @@ void SignUp(const vector<string>& args) {
     write(g_conn, str, len);
 }
 
+void Chat(const vector<string>& args) {
+    auto receiver = stoi(args[1]);
+
+    auto msg = std::make_shared<Message>();
+    msg->set_sender(g_uid);
+    // msg->set_stamp(2);
+    msg->set_receiver(receiver);
+    msg->set_msg(args[2]);
+    msg->set_type(Message_MessageType_ONLINE_CHAT);
+    Header header;
+    header.uid = g_uid;
+    header.stamp = 2;
+    header.request_type = static_cast<int>(RequestType::CHAT);
+
+    auto [str, len] = formatMessage(header, msg);
+    spdlog::info("send {0} byte to server, with head = {1}", len, header.toString());
+    write(g_conn, str, len);
+}
+
 void output_func() {
     co_enable_hook_sys();
     cout << "input coroutine enable" << endl;
@@ -109,6 +130,9 @@ void output_func() {
         else if (args[0] == "SIGNUP") {
             SignUp(args);
         }
+        else if(args[0] =="CHAT") {
+            Chat(args);
+        }
         else {
             cout << "unknown command, please retry" << endl;
         }
@@ -126,10 +150,18 @@ void handleResponse(const Header& header, const char* data) {
     PlayerInfo info;
     info.ParseFromString(str);
     cout << "get response with " << info.DebugString() << endl;
+    g_uid = info.uid();
 }
 
 void handleNotify(const Header& header, const char* data) {
     spdlog::info("got notify from server");
+    if(header.requestType() == RequestType::CHAT) {
+        std::string str(data, header.data_length);
+        Message message;
+        message.ParseFromString(str);
+        cout << "new message from " << message.sender() << ": ";
+        cout << message.msg() << endl;
+    }
 }
 
 void input_func() {

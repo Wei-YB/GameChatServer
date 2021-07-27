@@ -24,7 +24,7 @@ struct ThreadEnvironment {
     TcpClient data_server;
     TcpClient chat_server;
 
-    // std::unordered_map<int, std::weak_ptr<TcpConnection>>                 login_clients;
+    std::unordered_map<int, std::weak_ptr<TcpConnection>>                 login_clients;
     std::unordered_map<int, std::pair<int, std::weak_ptr<TcpConnection>>> login_requests;
     std::unordered_map<int, std::pair<int, std::weak_ptr<TcpConnection>>> sign_up_requests;
 

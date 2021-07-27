@@ -2,8 +2,10 @@
 
 #include "Lobby.h"
 
+namespace chatServer::chat {
+    hiredis::Hiredis* redis_client;
+}
 
-hiredis::Hiredis* redis_client;
 
 chatServer::chat::Client::Client(const TcpConnectionPtr& conn_ptr, Lobby& lobby):
     BasicParser(true), lobby_(lobby), ptr_(conn_ptr), login_(false) {
@@ -22,6 +24,8 @@ void chatServer::chat::Client::handleMessage(Buffer* buffer) {
     LOG_DEBUG << "receive head: " << header_.toString();
     if (header_.requestType() == RequestType::LOGIN) {
         handleLogin(buffer);
+    }else if(header_.requestType() == RequestType::CHAT) {
+        handleChat(buffer);
     }
 }
 
@@ -61,23 +65,26 @@ void chatServer::chat::Client::handleLogin(Buffer* buffer) {
         uid_ = request_head.uid;
         login_ = true;
         lobby_.login(request_head.uid, this);
+        LOG_INFO << "player: " << uid_ << " login the lobby";
     }, "EVAL %s 1 %s", login_cmd, info->nickname().c_str());
 }
 
 void chatServer::chat::Client::handleChat(Buffer* buffer) {
     auto msg = std::make_shared<Message>();
     msg->ParseFromString(std::string(buffer->peek(), header_.data_length));
+    LOG_DEBUG << "new message from: " << msg->sender() << " to " << msg->receiver();
     lobby_.newMessage(std::move(msg));
     buffer->retrieve(header_.data_length);
 }
 
 void chatServer::chat::Client::handleMessageQueue() {
+    LOG_DEBUG << "handle the chat message in player: " << uid_ << ", message count is " << queue_.size();
     Header header;
-    header.uid = uid_;
     header.request_type = static_cast<int>(RequestType::CHAT);
     // TODO: use the stamp to mark response
     header.stamp = 0;
-    for (const auto msg&  : queue_) {
+    for (const auto& msg  : queue_) {
+        header.uid = msg->receiver();
         sendMessage(formatMessage(header, msg));
     }
     queue_.clear();
