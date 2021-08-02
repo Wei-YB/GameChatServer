@@ -1,35 +1,39 @@
-#include "Client.h"
+#include "ProxyConnection.h"
 
 #include "Lobby.h"
 
 namespace chatServer::chat {
-    hiredis::Hiredis* redis_client;
+hiredis::Hiredis* redis_client;
 }
 
 
-chatServer::chat::Client::Client(const TcpConnectionPtr& conn_ptr, Lobby& lobby):
+chatServer::chat::ProxyConnection::ProxyConnection(const TcpConnectionPtr& conn_ptr, Lobby& lobby):
     BasicParser(true), lobby_(lobby), ptr_(conn_ptr), login_(false) {
 }
 
-void chatServer::chat::Client::parseData(Buffer* buffer) {
-    handleMessage(buffer);
+void chatServer::chat::ProxyConnection::parseData(Buffer* buffer) {
+    LOG_DEBUG << "receive head: " << header_.toString();
+    if (header_.requestType() == RequestType::LOGIN) {
+        handleLogin(buffer);
+    }
+    else if (header_.requestType() == RequestType::CHAT) {
+        handleChat(buffer);
+    }
+    else if (header_.requestType() == RequestType::LOGOUT) {
+        assert(header_.data_length == 0);
+        lobby_.logout(header_.uid);
+    }
 }
 
-void chatServer::chat::Client::disconnect() {
+
+
+void chatServer::chat::ProxyConnection::disconnect() {
     // queue_.shutdown();
     //TODO: release the pointer with connection
 }
 
-void chatServer::chat::Client::handleMessage(Buffer* buffer) {
-    LOG_DEBUG << "receive head: " << header_.toString();
-    if (header_.requestType() == RequestType::LOGIN) {
-        handleLogin(buffer);
-    }else if(header_.requestType() == RequestType::CHAT) {
-        handleChat(buffer);
-    }
-}
 
-void chatServer::chat::Client::handleLogin(Buffer* buffer) {
+void chatServer::chat::ProxyConnection::handleLogin(Buffer* buffer) {
     auto info = std::make_shared<PlayerInfo>();
     info->ParseFromString(buffer->retrieveAsString(header_.data_length));
     // redis async call to get information about the user, try check the login state
@@ -64,33 +68,26 @@ void chatServer::chat::Client::handleLogin(Buffer* buffer) {
         // change the state to login
         uid_ = request_head.uid;
         login_ = true;
-        lobby_.login(request_head.uid, this);
+        lobby_.login(info, ptr_.lock());
         LOG_INFO << "player: " << uid_ << " login the lobby";
     }, "EVAL %s 1 %s", login_cmd, info->nickname().c_str());
 }
 
-void chatServer::chat::Client::handleChat(Buffer* buffer) {
+void chatServer::chat::ProxyConnection::handleChat(Buffer* buffer) {
     auto msg = std::make_shared<Message>();
     msg->ParseFromString(std::string(buffer->peek(), header_.data_length));
     LOG_DEBUG << "new message from: " << msg->sender() << " to " << msg->receiver();
+    msg->set_stamp(now());
     lobby_.newMessage(std::move(msg));
     buffer->retrieve(header_.data_length);
 }
 
-void chatServer::chat::Client::handleMessageQueue() {
-    LOG_DEBUG << "handle the chat message in player: " << uid_ << ", message count is " << queue_.size();
-    Header header;
-    header.request_type = static_cast<int>(RequestType::CHAT);
-    // TODO: use the stamp to mark response
-    header.stamp = 0;
-    for (const auto& msg  : queue_) {
-        header.uid = msg->receiver();
-        sendMessage(formatMessage(header, msg));
-    }
-    queue_.clear();
-}
+// void chatServer::chat::ProxyConnection::handleMessageQueue() {
+//     handleMessageQueue(0, queue_);
+//     queue_.clear();
+// }
 
-void chatServer::chat::Client::sendMessage(const std::pair<char*, size_t>& message) const {
+void chatServer::chat::ProxyConnection::sendMessage(const std::pair<char*, size_t>& message) const {
     auto [str, len] = message;
     if (auto conn = ptr_.lock()) {
         conn->send(str, len);

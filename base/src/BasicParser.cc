@@ -38,7 +38,7 @@ void BasicParser::parseData(Buffer* buffer) {
 
 bool BasicParser::ableToReadHead(Buffer* buffer) {
     assert(state_ == State::WAIT_HEAD);
-    return buffer->readableBytes() > sizeof header_;
+    return buffer->readableBytes() >= sizeof header_;
 }
 
 bool BasicParser::ableToReadData(Buffer* buffer) const {

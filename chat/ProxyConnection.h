@@ -31,11 +31,11 @@ extern Hiredis* redis_client;
 class Lobby;
 
 
-class Client : public BasicParser {
+class ProxyConnection : public BasicParser {
 public:
-    Client(const TcpConnectionPtr& conn_ptr, Lobby& lobby);
+    ProxyConnection(const TcpConnectionPtr& conn_ptr, Lobby& lobby);
 
-    ~Client() override {
+    ~ProxyConnection() override {
         if (login_)
             lobby_.logout(uid_);
     }
@@ -43,8 +43,6 @@ public:
     void parseData(Buffer* buffer) override;
 
     void disconnect();
-
-    void handleMessage(Buffer* buffer);
 
     void handleLogin(Buffer* buffer);
 
@@ -54,10 +52,24 @@ public:
 
     // void handleBroadcastMessage(std::shared_ptr<Message> msg);
 
-    void handleMessageQueue();
+    // void handleMessageQueue();
+    //
+    // void handleMessageQueue(int receiver, const std::list<std::shared_ptr<Message>>& message_list) const {
+    //     LOG_DEBUG << "handle the chat message in player: " << uid_ << ", message count is " << message_list.size();
+    //     Header header;
+    //     header.uid = receiver;
+    //     header.request_type = static_cast<int>(RequestType::CHAT);
+    //     // TODO: use the stamp to mark response
+    //     header.stamp = 0;
+    //     for (const auto& msg : message_list) {
+    //         if (msg->type() == Message_MessageType_ONLINE_CHAT) {
+    //             header.uid = msg->receiver();
+    //         }
+    //         sendMessage(formatMessage(header, msg));
+    //     }
+    // }
 
     void insert(std::shared_ptr<Message>&& msg) {
-        // TODO: fix this with r-value ref
         queue_.push_back(std::move(msg));
     }
 

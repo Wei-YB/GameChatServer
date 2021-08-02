@@ -30,7 +30,23 @@ int main() {
     });
 
     server.setConnectionCallback([](const TcpConnectionPtr& connPtr) {
-        connPtr->setContext(ProxyParser(connPtr));
+        if (connPtr->connected())
+            connPtr->setContext(ProxyParser(connPtr));
+        else {
+            
+            auto parser = boost::any_cast<ProxyParser>(connPtr->getMutableContext());
+            if (parser->getState() != ClientState::LOGIN)
+                return;
+            Header header;
+            header.request_type = static_cast<int>(RequestType::LOGOUT);
+            header.uid = parser->player_uid;
+            environment->login_clients.erase(header.uid);
+            LOG_INFO << "player " << header.uid << " break connection with proxy";
+
+            auto [str, len] = formatMessage(header);
+            LOG_INFO << "send request to server with head: " << header.toString();
+            environment->chat_server.connection()->send(str, len);
+        }
     });
 
     server.setMessageCallback([](const TcpConnectionPtr& connptr, Buffer* buffer, auto) {

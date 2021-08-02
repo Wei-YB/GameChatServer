@@ -39,8 +39,8 @@ vector<string> splitBySpace(const std::string& str) {
 }
 
 void Login(const vector<string>& args) {
-    if (args.size() != 3) {
-        cout << "bad args: LOGIN <username> <password>" << endl;
+    if (args.size() != 3 && args.size() != 4) {
+        cout << "bad args: LOGIN <username> <password> [area 1 | 2]" << endl;
         return;
     }
     auto username = args[1];
@@ -49,11 +49,24 @@ void Login(const vector<string>& args) {
     auto info = std::make_shared<PlayerInfo>();
     info->set_nickname(username);
     info->set_password(password);
+    if (args.size() == 4) {
+        const auto area = stoi(args[3]);
+        if (area > 2 || area < 1) {
+            cout << "invalid area, please input 1 or 2" << endl;
+            return;
+        }
+        info->set_area(area);
+    }
+    else {
+        info->set_area(1);
+    }
+
 
     Header header{};
     header.request_type = static_cast<int>(RequestType::LOGIN);
     header.stamp = 0;
-    header.uid = -1;
+    header.uid = info->area();
+
     auto [str, len] = formatMessage(header, info);
     spdlog::info("send {0} byte to server, with head = {1}", len, header.toString());
     write(g_conn, str, len);
@@ -109,6 +122,21 @@ void Chat(const vector<string>& args) {
     write(g_conn, str, len);
 }
 
+void Broadcast(const vector<string>& args) {
+    auto msg = std::make_shared<Message>();
+    msg->set_sender(g_uid);
+    msg->set_type(Message_MessageType_SERVER_BROADCAST);
+    msg->set_msg(args[1]);
+    Header header;
+    header.uid = g_uid;
+    header.stamp = 2;
+    header.request_type = static_cast<int>(RequestType::CHAT);
+
+    auto [str, len] = formatMessage(header, msg);
+    spdlog::info("send {0} byte to server, with head = {1}", len, header.toString());
+    write(g_conn, str, len);
+}
+
 void output_func() {
     co_enable_hook_sys();
     cout << "input coroutine enable" << endl;
@@ -132,6 +160,8 @@ void output_func() {
         }
         else if(args[0] =="CHAT") {
             Chat(args);
+        }else if(args[0] == "BROADCAST") {
+            Broadcast(args);
         }
         else {
             cout << "unknown command, please retry" << endl;

@@ -33,6 +33,8 @@ public:
 
     ClientState getState() const;
 
+    int player_uid;
+
 private:
 
     std::weak_ptr<TcpConnection> conn_ptr_;

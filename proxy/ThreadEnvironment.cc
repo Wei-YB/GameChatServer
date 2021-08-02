@@ -61,11 +61,16 @@ void ThreadEnvironment::onChatServerMessage(Buffer* buffer) {
                     auto [str, len] = chatServer::formatMessage(header, buffer->peek() + sizeof header);
                     conn->send(str, len);
                     LOG_INFO << "send " << len << " bytes to client";
-                    boost::any_cast<ProxyParser>(conn->getMutableContext())->setLogin();
+                    auto parser = boost::any_cast<ProxyParser>(conn->getMutableContext());
+                    parser->player_uid = header.uid;
+                    parser->setLogin();
                 }
             }
-        }else if(login_clients.count(header.uid)){ // this is a request
+        }
+        else if(login_clients.count(header.uid)){ // this is a request
             auto client_conn = login_clients[uid].lock();
+            
+            // boost::any_cast<ProxyParser>(client_conn->getMutableContext())->player_uid = header.uid;
             client_conn->send(buffer->peek(), header.request_length());
         }
         else {
