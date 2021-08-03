@@ -2,7 +2,7 @@
 
 #include <hiredis/hiredis.h>
 
-#include <muduo/base/Logging.h>
+#include <spdlog/spdlog.h>
 
 using namespace chatServer::database;
 
@@ -37,7 +37,8 @@ Parser::Parser(const ConnPtr& connection): BasicParser(true), conn_(connection) 
 
 void Parser::parseData(Buffer* buffer) {
     if (header_.request_type <= 0 || header_.request_type >= static_cast<int>(RequestType::MAX_REQUEST_TYPE)) {
-        LOG_WARN << "receive bad head";
+        spdlog::warn("receive bad head");
+        // LOG_WARN << "receive bad head";
         parseBadHead(buffer);
     }
     const auto request_type = static_cast<RequestType>(header_.request_type);
@@ -74,11 +75,13 @@ void Parser::parseInfo(std::shared_ptr<PlayerInfo> info) {
             request_head.setOk();
             response(formatMessage(request_head, info));
         }
+        return 0;
     }, "LRANGE %d:player 0 -1", header_.uid);
 }
 
 void Parser::disConnect() {
-    LOG_TRACE << "release the connection ptr in parser";
+    spdlog::trace("release the connection ptr in parser");
+    // LOG_TRACE << "release the connection ptr in parser";
     conn_.reset();
 }
 
@@ -90,47 +93,56 @@ void Parser::parseSignUp(std::shared_ptr<PlayerInfo> info) {
                                   request_head.setOk();
                                   info->set_uid(std::stoi(reply->str));
                                   response(formatMessage(request_head, info));
-                                  LOG_DEBUG << "username: " << info->nickname() << "success sign up";
-                                  return;
+                                  spdlog::debug("username: {0} success sign up", info->nickname());
+                                  // LOG_DEBUG << "username: " << info->nickname() << "success sign up";
+                                  return 0;
                               }
                               if (reply->type == REDIS_REPLY_INTEGER)
                               {
-                                  LOG_DEBUG << "username: " << info->nickname() << " already used";
+                                  spdlog::debug("username: {0} already used", info->nickname());
+                                  // LOG_DEBUG << "username: " << info->nickname() << " already used";
                               }else {
-                                  LOG_ERROR <<"redis error";
+                                  spdlog::error("redis error");
+                                  // LOG_ERROR <<"redis error";
                               }
                               request_head.setFail();
                               response(formatMessage(request_head));
-
+                              return 0;
                           }, "EVAL %s %d %s %s %d %d", sign_up_cmd, 4,
                           info->nickname().c_str(), info->password().c_str(), info->signuptime(), info->area());
 }
 
 void Parser::parseLogin(std::shared_ptr<PlayerInfo> info) {
-    LOG_DEBUG << "new request is login";
+    spdlog::debug("new request is login");
+    //LOG_DEBUG << "new request is login";
     redis_client->command([this, info, request_head = header_](auto, auto* reply) mutable {
-                              LOG_INFO << "get redis reply with type = " << reply->type;
-                              if (reply->type == REDIS_REPLY_ARRAY) {
-                                  LOG_DEBUG << "reply size is " << reply->elements;
-                                  request_head.uid = std::stoi(reply->element[0]->str);
-                                  LOG_DEBUG << "got uid = " << request_head.uid;
-                                  info->set_password(reply->element[1]->element[1]->str);
-                                  info->set_signuptime(std::stoi(reply->element[1]->element[0]->str));
-                                  header_.setOk();
-                                  response(formatMessage(request_head, info));
-                                  return;
-                              }
-                              if (reply->type == REDIS_REPLY_ERROR) {
-                                  LOG_ERROR << "redis err: " << reply->str;
-                                  request_head.setFail(-3);
-                              }
-                              else if (reply->type == REDIS_REPLY_INTEGER && reply->integer == 0) {
-                                  request_head.setFail();
-                              }
-                              else {
-                                  request_head.setFail(-2);
-                              }
-                              response(formatMessage(request_head));
+        spdlog::info("get redis reply with type = {}", reply->type);
+        // LOG_INFO << "get redis reply with type = " << reply->type;
+        if (reply->type == REDIS_REPLY_ARRAY) {
+            // LOG_DEBUG << "reply size is " << reply->elements;
+            spdlog::debug("reply size is {}", reply->elements);
+            request_head.uid = std::stoi(reply->element[0]->str);
+            // LOG_DEBUG << "got uid = " << request_head.uid;
+            spdlog::debug("got uid = ", request_head.uid);
+            info->set_password(reply->element[1]->element[1]->str);
+            info->set_signuptime(std::stoi(reply->element[1]->element[0]->str));
+            header_.setOk();
+            response(formatMessage(request_head, info));
+            return 0;
+        }
+        if (reply->type == REDIS_REPLY_ERROR) {
+            // LOG_ERROR << "redis err: " << reply->str;
+            spdlog::error("redis err: {}", reply->str);
+            request_head.setFail(-3);
+        }
+        else if (reply->type == REDIS_REPLY_INTEGER && reply->integer == 0) {
+            request_head.setFail();
+        }
+        else {
+            request_head.setFail(-2);
+        }
+        response(formatMessage(request_head));
+        return 0;
                           },
                           "EVAL %s %d %s", login_cmd, 1, info->nickname().c_str());
 }

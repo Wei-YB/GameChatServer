@@ -7,7 +7,7 @@ ProxyParser::ProxyParser(const muduo::net::TcpConnectionPtr& connPtr): BasicPars
 }
 
 void ProxyParser::parseData(muduo::net::Buffer* buffer) {
-    LOG_DEBUG << "try to parse the data with buffer size is "<< buffer->readableBytes();
+    LOG_DEBUG << "try to parse the data with buffer size is " << buffer->readableBytes();
     switch (header_.requestType()) {
     case chatServer::RequestType::SIGN_UP:
         parseSignUp(buffer);
@@ -59,13 +59,13 @@ void ProxyParser::parseLogin(Buffer* buffer) {
     // fixed: did not change the stamp in buffer
     // environment->data_server.connection()->send(buffer->peek(), header_.request_length());
     auto [str, len] = formatMessage(header_, buffer->peek());
-    environment->chat_server.connection()->send(str, len);
+    environment->chat_server->connection()->send(str, len);
     LOG_DEBUG << "send " << len << " byte to chat server";
     buffer->retrieve(header_.data_length);
 }
 
 void ProxyParser::parseNormalRequest(Buffer* buffer) const {
-    environment->chat_server.connection()->send(buffer->peek(), header_.request_length());
+    environment->chat_server->connection()->send(buffer->peek(), header_.request_length());
     buffer->retrieve(header_.request_length());
 }
 

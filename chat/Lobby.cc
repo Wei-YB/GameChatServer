@@ -25,13 +25,13 @@ void Lobby::login(std::shared_ptr<PlayerInfo> player_info, const TcpConnectionPt
                                       active_players_.insert(user);
                                   }
                                   client->command([](auto, auto) {
-
+                                      return 0;
                                   }, "DEL %s:%d", "msg", player_uid);
                               }
                               else {
                                   LOG_ERROR << "bad redis call to get offline message";
                               }
-
+                              return 0;
                           },
                           "LRANGE %s:%d 0 -1", "msg", uid);
 }
@@ -68,6 +68,7 @@ void Lobby::privateChatMessage(std::shared_ptr<Message>&& msg) {
             if (reply->type != REDIS_REPLY_INTEGER) {
                 LOG_ERROR << "bad redis call with ret = " << reply->str;
             }
+            return 0;
         }, "RPUSH %s:%d %s", "msg", receiver, msg_str.c_str());
         // TODO: database_client_.write(msg);
     }

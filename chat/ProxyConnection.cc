@@ -47,7 +47,7 @@ void chatServer::chat::ProxyConnection::handleLogin(Buffer* buffer) {
         if (reply->type != REDIS_REPLY_ARRAY) {
             request_head.setFail(-1);
             sendMessage(formatMessage(request_head));
-            return;
+            return 0;
         }
 
         // handle the reply
@@ -70,6 +70,7 @@ void chatServer::chat::ProxyConnection::handleLogin(Buffer* buffer) {
         login_ = true;
         lobby_.login(info, ptr_.lock());
         LOG_INFO << "player: " << uid_ << " login the lobby";
+        return 0;
     }, "EVAL %s 1 %s", login_cmd, info->nickname().c_str());
 }
 

@@ -2,6 +2,7 @@
 #include <muduo/net/InetAddress.h>
 #include <muduo/net/TcpConnection.h>
 #include <muduo/net/TcpClient.h>
+#include <HiRedis.h>
 #include "Header.h"
 #include "muduo/base/Logging.h"
 
@@ -12,6 +13,9 @@ using muduo::net::TcpConnection;
 using muduo::net::Buffer;
 using muduo::net::TcpClient;
 using muduo::Timestamp;
+
+using hiredis::Hiredis;
+
 using chatServer::Header;
 
 struct ThreadEnvironment {
@@ -22,7 +26,9 @@ struct ThreadEnvironment {
     void onChatServerMessage(Buffer* buffer);
 
     TcpClient data_server;
-    TcpClient chat_server;
+    std::shared_ptr<TcpClient> chat_server;
+
+    Hiredis redis_client;
 
     std::unordered_map<int, std::weak_ptr<TcpConnection>>                 login_clients;
     std::unordered_map<int, std::pair<int, std::weak_ptr<TcpConnection>>> login_requests;

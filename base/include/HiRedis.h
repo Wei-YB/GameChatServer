@@ -1,5 +1,6 @@
 #pragma once
 
+#include <hiredis/async.h>
 #include <muduo/base/noncopyable.h>
 #include <muduo/base/StringPiece.h>
 #include <muduo/net/Callbacks.h>
@@ -19,12 +20,18 @@ namespace hiredis {
 class Hiredis : public std::enable_shared_from_this<Hiredis>,
                 muduo::noncopyable {
 public:
-    typedef std::function<void(Hiredis*, int)>         ConnectCallback;
-    typedef std::function<void(Hiredis*, int)>         DisconnectCallback;
-    typedef std::function<void(Hiredis*, redisReply*)> CommandCallback;
+    typedef std::function<void(Hiredis*, int)>        ConnectCallback;
+    typedef std::function<void(Hiredis*, int)>        DisconnectCallback;
+    typedef std::function<int(Hiredis*, redisReply*)> CommandCallback;
 
     Hiredis(muduo::net::EventLoop* loop, const muduo::net::InetAddress& serverAddr);
     ~Hiredis();
+
+    // TODO: need to remove, only for test
+    int status() const {
+        return context_->c.flags;
+    }
+
 
     const muduo::net::InetAddress& serverAddress() const { return serverAddr_; }
     // redisAsyncContext* context() { return context_; }

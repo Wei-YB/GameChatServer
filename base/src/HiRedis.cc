@@ -195,12 +195,15 @@ void Hiredis::commandCallback(redisAsyncContext* ac, void* r, void* privdata) {
 }
 
 void Hiredis::commandCallback(redisReply* reply, CommandCallback* cb) {
-    (*cb)(this, reply);
-    delete cb;
+    if (!(*cb)(this, reply))
+        delete cb;
 }
 
-int Hiredis::ping() {
-    return command([this](auto me, auto reply) { this->pingCallback(me, reply); }, "PING");
+int                            Hiredis::ping() {
+    return command([this](auto me, auto reply) {
+        this->pingCallback(me, reply);
+        return 0;
+    }, "PING");
 }
 
 void Hiredis::pingCallback(Hiredis* me, redisReply* reply) {
