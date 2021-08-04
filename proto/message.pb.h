@@ -47,7 +47,7 @@ struct TableStruct_message_2eproto {
     PROTOBUF_SECTION_VARIABLE(protodesc_cold);
   static const ::PROTOBUF_NAMESPACE_ID::internal::AuxiliaryParseTableField aux[]
     PROTOBUF_SECTION_VARIABLE(protodesc_cold);
-  static const ::PROTOBUF_NAMESPACE_ID::internal::ParseTable schema[4]
+  static const ::PROTOBUF_NAMESPACE_ID::internal::ParseTable schema[5]
     PROTOBUF_SECTION_VARIABLE(protodesc_cold);
   static const ::PROTOBUF_NAMESPACE_ID::internal::FieldMetadata field_metadata[];
   static const ::PROTOBUF_NAMESPACE_ID::internal::SerializationTable serialization_table[];
@@ -67,12 +67,16 @@ extern PlayerInfoDefaultTypeInternal _PlayerInfo_default_instance_;
 class PlayerList;
 struct PlayerListDefaultTypeInternal;
 extern PlayerListDefaultTypeInternal _PlayerList_default_instance_;
+class ServerInfo;
+struct ServerInfoDefaultTypeInternal;
+extern ServerInfoDefaultTypeInternal _ServerInfo_default_instance_;
 }  // namespace chatServer
 PROTOBUF_NAMESPACE_OPEN
 template<> ::chatServer::Message* Arena::CreateMaybeMessage<::chatServer::Message>(Arena*);
 template<> ::chatServer::MessageList* Arena::CreateMaybeMessage<::chatServer::MessageList>(Arena*);
 template<> ::chatServer::PlayerInfo* Arena::CreateMaybeMessage<::chatServer::PlayerInfo>(Arena*);
 template<> ::chatServer::PlayerList* Arena::CreateMaybeMessage<::chatServer::PlayerList>(Arena*);
+template<> ::chatServer::ServerInfo* Arena::CreateMaybeMessage<::chatServer::ServerInfo>(Arena*);
 PROTOBUF_NAMESPACE_CLOSE
 namespace chatServer {
 
@@ -104,6 +108,32 @@ inline bool Message_MessageType_Parse(
     ::PROTOBUF_NAMESPACE_ID::ConstStringParam name, Message_MessageType* value) {
   return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<Message_MessageType>(
     Message_MessageType_descriptor(), name, value);
+}
+enum ServerInfo_ServerType : int {
+  ServerInfo_ServerType_DATA_SERVER = 0,
+  ServerInfo_ServerType_CHAT_SERVER = 1,
+  ServerInfo_ServerType_PROXY_SERVER = 2,
+  ServerInfo_ServerType_ServerInfo_ServerType_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<::PROTOBUF_NAMESPACE_ID::int32>::min(),
+  ServerInfo_ServerType_ServerInfo_ServerType_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<::PROTOBUF_NAMESPACE_ID::int32>::max()
+};
+bool ServerInfo_ServerType_IsValid(int value);
+constexpr ServerInfo_ServerType ServerInfo_ServerType_ServerType_MIN = ServerInfo_ServerType_DATA_SERVER;
+constexpr ServerInfo_ServerType ServerInfo_ServerType_ServerType_MAX = ServerInfo_ServerType_PROXY_SERVER;
+constexpr int ServerInfo_ServerType_ServerType_ARRAYSIZE = ServerInfo_ServerType_ServerType_MAX + 1;
+
+const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* ServerInfo_ServerType_descriptor();
+template<typename T>
+inline const std::string& ServerInfo_ServerType_Name(T enum_t_value) {
+  static_assert(::std::is_same<T, ServerInfo_ServerType>::value ||
+    ::std::is_integral<T>::value,
+    "Incorrect type passed to function ServerInfo_ServerType_Name.");
+  return ::PROTOBUF_NAMESPACE_ID::internal::NameOfEnum(
+    ServerInfo_ServerType_descriptor(), enum_t_value);
+}
+inline bool ServerInfo_ServerType_Parse(
+    ::PROTOBUF_NAMESPACE_ID::ConstStringParam name, ServerInfo_ServerType* value) {
+  return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<ServerInfo_ServerType>(
+    ServerInfo_ServerType_descriptor(), name, value);
 }
 // ===================================================================
 
@@ -831,6 +861,215 @@ class MessageList final :
   mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   friend struct ::TableStruct_message_2eproto;
 };
+// -------------------------------------------------------------------
+
+class ServerInfo final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:chatServer.ServerInfo) */ {
+ public:
+  inline ServerInfo() : ServerInfo(nullptr) {}
+  ~ServerInfo() override;
+  explicit constexpr ServerInfo(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  ServerInfo(const ServerInfo& from);
+  ServerInfo(ServerInfo&& from) noexcept
+    : ServerInfo() {
+    *this = ::std::move(from);
+  }
+
+  inline ServerInfo& operator=(const ServerInfo& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline ServerInfo& operator=(ServerInfo&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const ServerInfo& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const ServerInfo* internal_default_instance() {
+    return reinterpret_cast<const ServerInfo*>(
+               &_ServerInfo_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    4;
+
+  friend void swap(ServerInfo& a, ServerInfo& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(ServerInfo* other) {
+    if (other == this) return;
+    if (GetOwningArena() == other->GetOwningArena()) {
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(ServerInfo* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  inline ServerInfo* New() const final {
+    return new ServerInfo();
+  }
+
+  ServerInfo* New(::PROTOBUF_NAMESPACE_ID::Arena* arena) const final {
+    return CreateMaybeMessage<ServerInfo>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const ServerInfo& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom(const ServerInfo& from);
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message*to, const ::PROTOBUF_NAMESPACE_ID::Message&from);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  ::PROTOBUF_NAMESPACE_ID::uint8* _InternalSerialize(
+      ::PROTOBUF_NAMESPACE_ID::uint8* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _cached_size_.Get(); }
+
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(ServerInfo* other);
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "chatServer.ServerInfo";
+  }
+  protected:
+  explicit ServerInfo(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  private:
+  static void ArenaDtor(void* object);
+  inline void RegisterArenaDtor(::PROTOBUF_NAMESPACE_ID::Arena* arena);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  typedef ServerInfo_ServerType ServerType;
+  static constexpr ServerType DATA_SERVER =
+    ServerInfo_ServerType_DATA_SERVER;
+  static constexpr ServerType CHAT_SERVER =
+    ServerInfo_ServerType_CHAT_SERVER;
+  static constexpr ServerType PROXY_SERVER =
+    ServerInfo_ServerType_PROXY_SERVER;
+  static inline bool ServerType_IsValid(int value) {
+    return ServerInfo_ServerType_IsValid(value);
+  }
+  static constexpr ServerType ServerType_MIN =
+    ServerInfo_ServerType_ServerType_MIN;
+  static constexpr ServerType ServerType_MAX =
+    ServerInfo_ServerType_ServerType_MAX;
+  static constexpr int ServerType_ARRAYSIZE =
+    ServerInfo_ServerType_ServerType_ARRAYSIZE;
+  static inline const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor*
+  ServerType_descriptor() {
+    return ServerInfo_ServerType_descriptor();
+  }
+  template<typename T>
+  static inline const std::string& ServerType_Name(T enum_t_value) {
+    static_assert(::std::is_same<T, ServerType>::value ||
+      ::std::is_integral<T>::value,
+      "Incorrect type passed to function ServerType_Name.");
+    return ServerInfo_ServerType_Name(enum_t_value);
+  }
+  static inline bool ServerType_Parse(::PROTOBUF_NAMESPACE_ID::ConstStringParam name,
+      ServerType* value) {
+    return ServerInfo_ServerType_Parse(name, value);
+  }
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kIpFieldNumber = 1,
+    kPortFieldNumber = 2,
+    kAreaFieldNumber = 3,
+    kTypeFieldNumber = 4,
+  };
+  // string ip = 1;
+  void clear_ip();
+  const std::string& ip() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_ip(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_ip();
+  PROTOBUF_MUST_USE_RESULT std::string* release_ip();
+  void set_allocated_ip(std::string* ip);
+  private:
+  const std::string& _internal_ip() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_ip(const std::string& value);
+  std::string* _internal_mutable_ip();
+  public:
+
+  // int32 port = 2;
+  void clear_port();
+  ::PROTOBUF_NAMESPACE_ID::int32 port() const;
+  void set_port(::PROTOBUF_NAMESPACE_ID::int32 value);
+  private:
+  ::PROTOBUF_NAMESPACE_ID::int32 _internal_port() const;
+  void _internal_set_port(::PROTOBUF_NAMESPACE_ID::int32 value);
+  public:
+
+  // int32 area = 3;
+  void clear_area();
+  ::PROTOBUF_NAMESPACE_ID::int32 area() const;
+  void set_area(::PROTOBUF_NAMESPACE_ID::int32 value);
+  private:
+  ::PROTOBUF_NAMESPACE_ID::int32 _internal_area() const;
+  void _internal_set_area(::PROTOBUF_NAMESPACE_ID::int32 value);
+  public:
+
+  // .chatServer.ServerInfo.ServerType type = 4;
+  void clear_type();
+  ::chatServer::ServerInfo_ServerType type() const;
+  void set_type(::chatServer::ServerInfo_ServerType value);
+  private:
+  ::chatServer::ServerInfo_ServerType _internal_type() const;
+  void _internal_set_type(::chatServer::ServerInfo_ServerType value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:chatServer.ServerInfo)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr ip_;
+  ::PROTOBUF_NAMESPACE_ID::int32 port_;
+  ::PROTOBUF_NAMESPACE_ID::int32 area_;
+  int type_;
+  mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  friend struct ::TableStruct_message_2eproto;
+};
 // ===================================================================
 
 
@@ -1232,9 +1471,121 @@ MessageList::messages() const {
   return messages_;
 }
 
+// -------------------------------------------------------------------
+
+// ServerInfo
+
+// string ip = 1;
+inline void ServerInfo::clear_ip() {
+  ip_.ClearToEmpty();
+}
+inline const std::string& ServerInfo::ip() const {
+  // @@protoc_insertion_point(field_get:chatServer.ServerInfo.ip)
+  return _internal_ip();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void ServerInfo::set_ip(ArgT0&& arg0, ArgT... args) {
+ 
+ ip_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:chatServer.ServerInfo.ip)
+}
+inline std::string* ServerInfo::mutable_ip() {
+  std::string* _s = _internal_mutable_ip();
+  // @@protoc_insertion_point(field_mutable:chatServer.ServerInfo.ip)
+  return _s;
+}
+inline const std::string& ServerInfo::_internal_ip() const {
+  return ip_.Get();
+}
+inline void ServerInfo::_internal_set_ip(const std::string& value) {
+  
+  ip_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, value, GetArenaForAllocation());
+}
+inline std::string* ServerInfo::_internal_mutable_ip() {
+  
+  return ip_.Mutable(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, GetArenaForAllocation());
+}
+inline std::string* ServerInfo::release_ip() {
+  // @@protoc_insertion_point(field_release:chatServer.ServerInfo.ip)
+  return ip_.Release(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArenaForAllocation());
+}
+inline void ServerInfo::set_allocated_ip(std::string* ip) {
+  if (ip != nullptr) {
+    
+  } else {
+    
+  }
+  ip_.SetAllocated(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), ip,
+      GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set_allocated:chatServer.ServerInfo.ip)
+}
+
+// int32 port = 2;
+inline void ServerInfo::clear_port() {
+  port_ = 0;
+}
+inline ::PROTOBUF_NAMESPACE_ID::int32 ServerInfo::_internal_port() const {
+  return port_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::int32 ServerInfo::port() const {
+  // @@protoc_insertion_point(field_get:chatServer.ServerInfo.port)
+  return _internal_port();
+}
+inline void ServerInfo::_internal_set_port(::PROTOBUF_NAMESPACE_ID::int32 value) {
+  
+  port_ = value;
+}
+inline void ServerInfo::set_port(::PROTOBUF_NAMESPACE_ID::int32 value) {
+  _internal_set_port(value);
+  // @@protoc_insertion_point(field_set:chatServer.ServerInfo.port)
+}
+
+// int32 area = 3;
+inline void ServerInfo::clear_area() {
+  area_ = 0;
+}
+inline ::PROTOBUF_NAMESPACE_ID::int32 ServerInfo::_internal_area() const {
+  return area_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::int32 ServerInfo::area() const {
+  // @@protoc_insertion_point(field_get:chatServer.ServerInfo.area)
+  return _internal_area();
+}
+inline void ServerInfo::_internal_set_area(::PROTOBUF_NAMESPACE_ID::int32 value) {
+  
+  area_ = value;
+}
+inline void ServerInfo::set_area(::PROTOBUF_NAMESPACE_ID::int32 value) {
+  _internal_set_area(value);
+  // @@protoc_insertion_point(field_set:chatServer.ServerInfo.area)
+}
+
+// .chatServer.ServerInfo.ServerType type = 4;
+inline void ServerInfo::clear_type() {
+  type_ = 0;
+}
+inline ::chatServer::ServerInfo_ServerType ServerInfo::_internal_type() const {
+  return static_cast< ::chatServer::ServerInfo_ServerType >(type_);
+}
+inline ::chatServer::ServerInfo_ServerType ServerInfo::type() const {
+  // @@protoc_insertion_point(field_get:chatServer.ServerInfo.type)
+  return _internal_type();
+}
+inline void ServerInfo::_internal_set_type(::chatServer::ServerInfo_ServerType value) {
+  
+  type_ = value;
+}
+inline void ServerInfo::set_type(::chatServer::ServerInfo_ServerType value) {
+  _internal_set_type(value);
+  // @@protoc_insertion_point(field_set:chatServer.ServerInfo.type)
+}
+
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
+// -------------------------------------------------------------------
+
 // -------------------------------------------------------------------
 
 // -------------------------------------------------------------------
@@ -1252,6 +1603,11 @@ template <> struct is_proto_enum< ::chatServer::Message_MessageType> : ::std::tr
 template <>
 inline const EnumDescriptor* GetEnumDescriptor< ::chatServer::Message_MessageType>() {
   return ::chatServer::Message_MessageType_descriptor();
+}
+template <> struct is_proto_enum< ::chatServer::ServerInfo_ServerType> : ::std::true_type {};
+template <>
+inline const EnumDescriptor* GetEnumDescriptor< ::chatServer::ServerInfo_ServerType>() {
+  return ::chatServer::ServerInfo_ServerType_descriptor();
 }
 
 PROTOBUF_NAMESPACE_CLOSE

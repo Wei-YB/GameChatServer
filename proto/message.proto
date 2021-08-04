@@ -34,3 +34,17 @@ message Message{
 message MessageList{
     repeated Message messages = 1;
 }
+
+
+
+message ServerInfo{
+    enum ServerType{
+        DATA_SERVER = 0;
+        CHAT_SERVER = 1;
+        PROXY_SERVER = 2;
+    }
+    string ip = 1;
+    int32 port = 2;
+    int32 area = 3;
+    ServerType type = 4;
+}
