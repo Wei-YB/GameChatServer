@@ -45,7 +45,7 @@ void ProxyParser::parseSignUp(muduo::net::Buffer* buffer) {
 }
 
 void ProxyParser::parseLogin(Buffer* buffer) {
-    if (client_state_ != ClientState::NOT_LOGIN) {
+    if (client_state_ != ClientState::NOT_LOGIN || header_.uid > 2 || header_.uid < 0) {
         buffer->retrieve(header_.request_length());
         header_.setFail(-1);
         auto [str, len] = chatServer::formatMessage(header_);
@@ -59,13 +59,28 @@ void ProxyParser::parseLogin(Buffer* buffer) {
     // fixed: did not change the stamp in buffer
     // environment->data_server.connection()->send(buffer->peek(), header_.request_length());
     auto [str, len] = formatMessage(header_, buffer->peek());
-    environment->chat_server->connection()->send(str, len);
+    if (header_.uid == 1)
+        environment->chat_server_area_1->connection()->send(str, len);
+    else if (header_.uid == 2)
+        environment->chat_server_area_2->connection()->send(str, len);
     LOG_DEBUG << "send " << len << " byte to chat server";
     buffer->retrieve(header_.data_length);
 }
 
 void ProxyParser::parseNormalRequest(Buffer* buffer) const {
-    environment->chat_server->connection()->send(buffer->peek(), header_.request_length());
+    const auto area = environment->user_info[header_.uid];
+
+    std::shared_ptr<TcpClient> server;
+    if (area == 1) {
+        server = environment->chat_server_area_1;
+    }
+    else if (area == 2) {
+        server = environment->chat_server_area_2;
+    }
+    else {
+        // TODO: bad request;
+    }
+    server->connection()->send(buffer->peek(), header_.request_length());
     buffer->retrieve(header_.request_length());
 }
 

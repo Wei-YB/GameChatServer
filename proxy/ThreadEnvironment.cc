@@ -7,29 +7,12 @@ thread_local ThreadEnvironment* environment;
 ThreadEnvironment::ThreadEnvironment(EventLoop* loop):
     data_server(loop, InetAddress("127.0.0.1", 12345),
                 "Database Client"),
-    chat_server(std::make_shared<TcpClient>(loop, InetAddress("127.0.0.1", 12346),
-                                            "Chat Clinet")),
-    current_stamp_(1),
-    redis_client(loop, InetAddress("127.0.0.1", 6379)) {
+    redis_client(loop, InetAddress("127.0.0.1", 6379)),
+    current_stamp_(1) {
     data_server.connect();
     data_server.setMessageCallback([this](const TcpConnectionPtr& conn, Buffer* buffer, Timestamp) {
         this->onDataServerMessage(buffer);
     });
-
-    chat_server->setMessageCallback([this](const TcpConnectionPtr& conn, Buffer* buffer, Timestamp) {
-        this->onChatServerMessage(buffer);
-        });
-
-    chat_server->setConnectionCallback([](const TcpConnectionPtr& conn) {
-        if (conn->disconnected()) {
-            environment->chat_server.reset();
-        }
-    });
-
-    chat_server->connect();
-    
-
-
 
     redis_client.connect();
     // environment->redis_client.command();

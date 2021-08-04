@@ -9,6 +9,8 @@
 #include <BasicParser.h>
 #include <muduo/base/Timestamp.h>
 
+#include <message.pb.h>
+
 #include "ProxyParser.h"
 #include "ThreadEnvironment.h"
 
@@ -18,34 +20,18 @@ using muduo::Timestamp;
 using chatServer::BasicParser;
 using chatServer::RequestType;
 using chatServer::Header;
+using chatServer::ServerInfo;
 
 
-std::shared_ptr<TcpClient> newChatClient(EventLoop* loop, const std::string& addr) {
-    const auto dot_pos = addr.find(':');
-    auto       ip = addr.substr(0, dot_pos);
-    auto       port = std::stoi(addr.substr(dot_pos + 1));
-    auto       server = std::make_shared<TcpClient>(loop, InetAddress(ip, port), "Chat Client");
-
+std::pair<int, std::shared_ptr<TcpClient>> newChatClient(EventLoop* loop, const std::string& ip, int port) {
+    auto server = std::make_shared<TcpClient>(loop, InetAddress(ip, port), "Chat Client");
+    auto index = environment->getStamp();
     server->setMessageCallback([](auto, auto buffer, auto) {
         environment->onChatServerMessage(buffer);
     });
-
-    server->setConnectionCallback([](const auto& conn) {
-        if (conn->disconnected()) {
-            environment->chat_server.reset();
-        }
-
-    });
     server->connect();
-    return server;
+    return { index, server };
 }
-
-
-struct ServerInfo {
-    std::string addr;
-    int area;
-    int type;   // this is a proxy or database or chat
-};
 
 int main() {
     EventLoop loop;
@@ -73,7 +59,10 @@ int main() {
 
             auto [str, len] = formatMessage(header);
             LOG_INFO << "send request to server with head: " << header.toString();
-            environment->chat_server->connection()->send(str, len);
+            auto chat_server = environment->user_info[header.uid] == 1
+                                   ? environment->chat_server_area_1
+                                   : environment->chat_server_area_2;
+            chat_server->connection()->send(str, len);
         }
     });
 
@@ -87,13 +76,25 @@ int main() {
     loop.runAfter(1, [&loop]() {
                       auto ret = environment->redis_client.command([&loop](auto, redisReply* reply) {
                           if (reply->type == REDIS_REPLY_ARRAY && reply->elements == 3) {
-                              if (reply->element[2]->type == REDIS_REPLY_STRING)
-                              {
-                                  std::string server(reply->element[2]->str, reply->element[2]->len);
-                                  LOG_DEBUG << "got new ip address: " << server;
-                                  if (!environment->chat_server) {
-                                      LOG_DEBUG << "try to get new connection to chat server";
-                                      environment->chat_server = newChatClient(&loop, server);
+                              if (reply->element[2]->type == REDIS_REPLY_STRING) {
+                                  std::string serverInfo(reply->element[2]->str, reply->element[2]->len);
+                                  ServerInfo  info;
+                                  info.ParseFromString(serverInfo);
+                                  LOG_DEBUG << "got new ip address: " << info.DebugString();
+                                  auto area = info.area();
+
+                                  auto [index, server] = newChatClient(&loop, info.ip(), info.port());
+                                  if (area == 1) {
+                                      server->setConnectionCallback([i = index](auto conn) {
+                                          environment->chat_server_area_1.reset();
+                                      });
+                                      environment->chat_server_area_1 = server;
+                                  }
+                                  else {
+                                      server->setConnectionCallback([i = index](auto conn) {
+                                          environment->chat_server_area_2.reset();
+                                      });
+                                      environment->chat_server_area_2 = server;
                                   }
                               }
                           }
