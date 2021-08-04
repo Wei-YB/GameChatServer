@@ -27,7 +27,7 @@ std::shared_ptr<TcpClient> newChatClient(EventLoop* loop, const std::string& add
     auto       server = std::make_shared<TcpClient>(loop, InetAddress(ip, port), "Chat Client");
 
     server->setMessageCallback([](auto, auto buffer, auto) {
-        environment->onDataServerMessage(buffer);
+        environment->onChatServerMessage(buffer);
     });
 
     server->setConnectionCallback([](const auto& conn) {
@@ -39,6 +39,13 @@ std::shared_ptr<TcpClient> newChatClient(EventLoop* loop, const std::string& add
     server->connect();
     return server;
 }
+
+
+struct ServerInfo {
+    std::string addr;
+    int area;
+    int type;   // this is a proxy or database or chat
+};
 
 int main() {
     EventLoop loop;

@@ -148,7 +148,8 @@ void Parser::parseLogin(std::shared_ptr<PlayerInfo> info) {
 }
 
 void Parser::parseBadHead(Buffer* buffer) {
-    buffer->retrieve(header_.data_length);
+    buffer->retrieveAll();
+    // buffer->retrieve(header_.data_length);
     header_.setFail();
     response(formatMessage(header_));
 }

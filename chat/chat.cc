@@ -43,6 +43,10 @@ int main() {
         chat_lobby.handleMessage();
     });
 
+    main_loop.runAfter(1, []() {
+        redis_client->command([](auto, auto){return 0;},
+        "PUBLISH service_notify 127.0.0.1:12346");});
+
     server.start();
     main_loop.loop();
     return 0;
