@@ -3,12 +3,8 @@
 // #include "Client.h"
 using namespace chatServer::chat;
 
-const auto* login_cache = "redis.call('SADD', 'area:1', KEYS[1]); redis.call('PUBLISH', 'area:1:channel', KEYS[1]);";
-
-
 void Lobby::login(std::shared_ptr<PlayerInfo> player_info, const TcpConnectionPtr& conn) {
-    auto       player = std::make_shared<Player>(player_info, conn);
-    auto       area = player->info().area();
+    auto player    = std::make_shared<Player>(player_info, conn);
     const auto uid = player->uid();
     //redis_client->command([](auto, auto) {
     //     }, "EVAL %s 1 %d", login_cache, player->uid());
@@ -16,35 +12,13 @@ void Lobby::login(std::shared_ptr<PlayerInfo> player_info, const TcpConnectionPt
 
     // online information
     redis_client->command([](auto, auto) { return 0; },
-                          "SET %d:online %s", uid, current_server_str.c_str());
+        "SET %d:online %s", uid, current_server_str.c_str());
     // offline message
-    redis_client->command([this, player_uid = uid](hiredis::Hiredis* client, redisReply* reply) {
-                              auto user = local_players_[player_uid];
-                              if (reply->type == REDIS_REPLY_ARRAY) {
-                                  LOG_DEBUG << "got " << reply->elements << " offline messages";
-                                  // there is some offline message
-                                  for (int i = 0; i < reply->elements; ++i) {
-                                      auto offline_message = std::make_shared<Message>();
-                                      offline_message->ParseFromString(reply->element[i]->str);
-                                      user->newMessage(std::move(offline_message));
-                                      active_players_.insert(user);
-                                  }
-                                  client->command([](auto, auto) {
-                                      return 0;
-                                  }, "DEL %s:%d", "msg", player_uid);
-                              }
-                              else {
-                                  LOG_ERROR << "bad redis call to get offline message";
-                              }
-                              return 0;
-                          },
-                          "LRANGE %s:%d 0 -1", "msg", uid);
-    auto online_notify = std::make_shared<Message>();
-    online_notify->set_msg("online");
-    online_notify->set_receiver(0);
-    online_notify->set_sender(uid);
-    online_notify->set_type(Message_MessageType_ONLINE);
-    broadcastMessage(std::move(online_notify));
+    redis_client->command([=](hiredis::Hiredis* client, redisReply* reply) {
+        return handleOfflineMessage(uid, client, reply);
+    }, "LRANGE %s:%d 0 -1", "msg", uid);
+
+    broadcastMessage(onlineNotify(uid));
 }
 
 void Lobby::logout(int uid) {
@@ -58,23 +32,22 @@ void Lobby::logout(int uid) {
     offline_notify->set_msg("offline");
 
     broadcastMessage(std::move(offline_notify));
-    // local_clients_.erase(uid);
 }
 
 void Lobby::broadcastMessage(std::shared_ptr<Message>&& msg) {
     broadcast_message_list_.push_back(msg);
-    // TODO: notify other server;
 }
 
 void Lobby::privateChatMessage(std::shared_ptr<Message>&& msg) {
-    auto receiver = msg->receiver();
-    auto player = local_players_.find(receiver);
+    const auto receiver = msg->receiver();
+    const auto player   = local_players_.find(receiver);
     if (player != local_players_.end()) {
         auto client = player->second;
         client->newMessage(std::move(msg));
         active_players_.insert(client);
     }
-    else { // the receiver may on other server or offline
+    else {
+        // the receiver may on other server or offline
         LOG_DEBUG << "the receiver is not on current server";
 
         redis_client->command([this, msg = std::move(msg)](auto, redisReply* reply) mutable {
@@ -84,25 +57,27 @@ void Lobby::privateChatMessage(std::shared_ptr<Message>&& msg) {
             else if (reply->type == REDIS_REPLY_STRING) {
                 std::string info(reply->str);
                 forwardMessage(msg, info);
-            }else {
+            }
+            else {
                 LOG_ERROR << "bad reply from redis";
             }
             return 0;
-            }, "GET %d:online", receiver);
+        }, "GET %d:online", receiver);
     }
 }
 
 void Lobby::forwardMessage(std::shared_ptr<Message> msg, std::string server) {
     if (other_servers_.count(server)) {
-        LOG_DEBUG << "forward message "<< msg->DebugString() << " to dest";
-        auto   client = other_servers_[server];
+        LOG_DEBUG << "forward message " << msg->DebugString() << " to dest";
+        auto client = other_servers_[server];
         Header header;
         header.request_type = static_cast<int>(RequestType::CHAT);
-        header.uid = msg->sender();
-        header.stamp = 0;
-        auto [str, len] = formatMessage(header, msg);
+        header.uid          = msg->sender();
+        header.stamp        = 0;
+        auto [str, len]     = formatMessage(header, msg);
         client->connection()->send(str, len);
-    }else {
+    }
+    else {
         LOG_WARN << "invalid server id";
     }
 }
@@ -110,7 +85,7 @@ void Lobby::forwardMessage(std::shared_ptr<Message> msg, std::string server) {
 void Lobby::offlineMessage(std::shared_ptr<Message>&& msg) {
     auto receiver = msg->receiver();
     LOG_DEBUG << "offline message for " << receiver;
-    auto                         msg_str = msg->SerializeAsString();
+    auto msg_str = msg->SerializeAsString();
     redis_client->command([](auto, redisReply* reply) {
         if (reply->type != REDIS_REPLY_INTEGER) {
             LOG_ERROR << "bad redis call with ret = " << reply->str;
@@ -119,9 +94,34 @@ void Lobby::offlineMessage(std::shared_ptr<Message>&& msg) {
     }, "RPUSH %s:%d %s", "msg", receiver, msg_str.c_str());
 }
 
-void Lobby::handleOfflineMessage(hiredis::Hiredis* client, redisReply* reply) {
+int Lobby::handleOfflineMessage(int uid, hiredis::Hiredis* client, redisReply* reply) {
+    auto user = local_players_[uid];
+    if (reply->type == REDIS_REPLY_ARRAY) {
+        LOG_DEBUG << "got " << reply->elements << " offline messages";
+        // there is some offline message
+        for (int i = 0; i < reply->elements; ++i) {
+            auto offline_message = std::make_shared<Message>();
+            offline_message->ParseFromString(reply->element[i]->str);
+            user->newMessage(std::move(offline_message));
+            active_players_.insert(user);
+        }
+        client->command([](auto, auto) {
+            return 0;
+        }, "DEL %s:%d", "msg", uid);
+    }
+    else {
+        LOG_ERROR << "bad redis call to get offline message";
+    }
+    return 0;
+}
 
-
+std::shared_ptr<Message> Lobby::onlineNotify(int uid) {
+    auto online_notify = std::make_shared<Message>();
+    online_notify->set_msg("online");
+    online_notify->set_receiver(0);
+    online_notify->set_sender(uid);
+    online_notify->set_type(Message_MessageType_ONLINE);
+    return online_notify;
 }
 
 
@@ -130,8 +130,8 @@ void Lobby::newMessage(std::shared_ptr<Message>&& msg) {
         broadcastMessage(std::move(msg));
     }
     if (msg->type() == Message_MessageType_SERVER_BROADCAST && local_players_.count(msg->sender())) {
-        for (auto& [serv, client] : other_servers_) {
-            forwardMessage(msg, serv);
+        for (auto& [server, client] : other_servers_) {
+            forwardMessage(msg, server);
         }
     }
     else {
@@ -163,7 +163,7 @@ void Lobby::newServerInfo(muduo::net::EventLoop* loop, const std::string& info) 
         return;
     auto client = std::make_shared<TcpClient>
         (loop, muduo::net::InetAddress(server_info.ip(), server_info.port()), "other server");
-    
+
     client->connect();
     LOG_DEBUG << "connect to server " << server_info.DebugString();
     other_servers_[info] = client;

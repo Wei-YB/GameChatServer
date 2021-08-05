@@ -26,7 +26,9 @@ stCoRoutine_t* input_routine;
 stCoRoutine_t* output_routine;
 
 int g_conn;
-int g_uid;
+int g_uid = -1;
+
+PlayerInfo user_info;
 
 vector<string> splitBySpace(const std::string& str) {
     vector<string> result;
@@ -43,6 +45,10 @@ void Login(const vector<string>& args) {
         cout << "bad args: LOGIN <username> <password> [area 1 | 2]" << endl;
         return;
     }
+    if(g_uid != -1) {
+        cout << "already login with user: " << user_info.nickname() << endl;
+    }
+
     auto username = args[1];
     auto password = args[2];
 
@@ -64,7 +70,7 @@ void Login(const vector<string>& args) {
 
     Header header{};
     header.request_type = static_cast<int>(RequestType::LOGIN);
-    header.stamp = 0;
+    header.stamp = 102;
     header.uid = info->area();
 
     auto [str, len] = formatMessage(header, info);
@@ -104,6 +110,10 @@ void SignUp(const vector<string>& args) {
 }
 
 void Chat(const vector<string>& args) {
+    if (g_uid < 0) {
+        cout << "invalid state" << endl;
+        return;
+    }
     auto receiver = stoi(args[1]);
 
     auto msg = std::make_shared<Message>();
@@ -113,8 +123,8 @@ void Chat(const vector<string>& args) {
     msg->set_msg(args[2]);
     msg->set_type(Message_MessageType_ONLINE_CHAT);
     Header header;
-    header.uid = g_uid;
-    header.stamp = 2;
+    header.uid          = g_uid;
+    header.stamp        = 2;
     header.request_type = static_cast<int>(RequestType::CHAT);
 
     auto [str, len] = formatMessage(header, msg);
@@ -123,18 +133,69 @@ void Chat(const vector<string>& args) {
 }
 
 void Broadcast(const vector<string>& args) {
+    if (g_uid == -1) {
+        cout << "invalid command" << endl;
+        return;
+    }
     auto msg = std::make_shared<Message>();
     msg->set_sender(g_uid);
-    msg->set_type(Message_MessageType_SERVER_BROADCAST);
+    msg->set_type(Message_MessageType_LOBBY_BROADCAST);
     msg->set_msg(args[1]);
     Header header;
-    header.uid = g_uid;
-    header.stamp = 2;
+    header.uid          = g_uid;
+    header.stamp        = 2;
     header.request_type = static_cast<int>(RequestType::CHAT);
 
     auto [str, len] = formatMessage(header, msg);
     spdlog::info("send {0} byte to server, with head = {1}", len, header.toString());
     write(g_conn, str, len);
+}
+
+void BroadcastAll(const vector<string>& args) {
+    if (g_uid == -1) {
+        cout << "invalid command" << endl;
+        return;
+    }
+    auto msg = std::make_shared<Message>();
+    msg->set_sender(g_uid);
+    msg->set_type(Message_MessageType_SERVER_BROADCAST);
+    msg->set_msg(args[1]);
+    Header header;
+    header.uid          = g_uid;
+    header.stamp        = 2;
+    header.request_type = static_cast<int>(RequestType::CHAT);
+
+    auto [str, len] = formatMessage(header, msg);
+    spdlog::info("send {0} byte to server, with head = {1}", len, header.toString());
+    write(g_conn, str, len);
+}
+
+void Logout(const vector<string>& args) {
+    if(g_uid == -1) {
+        cout << "invalid command, have not login" << endl;
+        return;
+    }
+    Header header;
+    header.data_length = 0;
+    header.uid = g_uid;
+    g_uid = -1;
+    header.request_type = static_cast<int>(RequestType::LOGOUT);
+    header.stamp = 0;
+    auto [str, len] = formatMessage(header);
+    spdlog::info("send {0} byte to server, with head = {1}", len, header.toString());
+    write(g_conn, str, len);
+}
+
+vector<string>&  shrink(vector<string>& args, int size) {
+    auto& str = args[size - 1];
+    for(int i = size; i < args.size(); ++i) {
+        str += " ";
+        str += args[i];
+    }
+    while(args.size() > size) {
+        args.pop_back();
+    }
+    return args;
 }
 
 void output_func() {
@@ -159,9 +220,13 @@ void output_func() {
             SignUp(args);
         }
         else if(args[0] =="CHAT") {
-            Chat(args);
+            Chat(shrink(args, 3));
         }else if(args[0] == "BROADCAST") {
-            Broadcast(args);
+            Broadcast(shrink(args, 2));
+        }else if(args[0] == "BROADCASTALL") {
+            Broadcast(shrink(args, 2));
+        }else if(args[0] == "LOGOUT") {
+            Logout(args);
         }
         else {
             cout << "unknown command, please retry" << endl;
@@ -179,6 +244,11 @@ void handleResponse(const Header& header, const char* data) {
     auto       str = string(data, header.data_length);
     PlayerInfo info;
     info.ParseFromString(str);
+    if(header.stamp == 102) {
+        // this is login
+        user_info = info;
+    }
+
     cout << "get response with " << info.DebugString() << endl;
     g_uid = info.uid();
 }
@@ -206,10 +276,15 @@ void input_func() {
         co_poll(co_get_epoll_ct(), &event, 1, -1);
 
         auto ret = read(g_conn, buffer, sizeof buffer);
+        if (ret == 0) {
+            cout << "connection break with server, abort..";
+            exit(0);
+        }
         spdlog::info("receive {0} bytes from server", ret);
-        while (ret) {
-            Header header(buffer);
-            auto   next = buffer + sizeof header;
+        auto cur = buffer;
+        while (ret > 0) {
+            Header header(cur);
+            auto   next = cur + sizeof header;
             spdlog::info("header is {}", header.toString());
             if (header.request_type < 1) {
                 handleResponse(header, next);
@@ -217,6 +292,7 @@ void input_func() {
             else {
                 handleNotify(header, next);
             }
+            cur += header.request_length();
             ret -= header.request_length();
         }
     }
@@ -226,6 +302,7 @@ void input_func() {
 int main() {
     spdlog::set_default_logger(logger);
     spdlog::set_level(spdlog::level::debug);
+    spdlog::flush_on(spdlog::level::info);
     g_conn = socket(AF_INET, SOCK_STREAM, 0);
     sockaddr_in server;
     server.sin_family = AF_INET;

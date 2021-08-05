@@ -4,6 +4,7 @@
 #include <message.pb.h>
 #include <muduo/net/TcpClient.h>
 #include <muduo/net/EventLoop.h>
+
 #include "HiRedis.h"
 #include "Player.h"
 
@@ -16,8 +17,7 @@ using muduo::net::TcpClient;
 
 extern hiredis::Hiredis* redis_client;
 
-// TODO: change the local_clients with Player, rather then proxy client
-
+// TODO: how to make the response?
 class Lobby {
 public:
     void login(std::shared_ptr<PlayerInfo> player_info, const TcpConnectionPtr& conn);
@@ -28,8 +28,7 @@ public:
     void handleMessage();
 
 
-    // new server notify for the server list: only for the chat server
-     void newServerInfo(muduo::net::EventLoop* loop, const std::string& info);
+    void newServerInfo(muduo::net::EventLoop* loop, const std::string& info);
 
     void start(muduo::net::EventLoop* loop);
 
@@ -42,13 +41,15 @@ private:
 
     void offlineMessage(std::shared_ptr<Message>&& msg);
 
+    int handleOfflineMessage(int uid, hiredis::Hiredis* client, redisReply* reply);
 
-    void handleOfflineMessage(hiredis::Hiredis* client, redisReply* reply);
+    std::shared_ptr<Message> onlineNotify(int uid);
 
     std::unordered_map<std::string, std::shared_ptr<TcpClient>> other_servers_;
 
     std::list<std::shared_ptr<Message>> broadcast_message_list_;
 
+    std::unordered_map<int, std::string> player_cache_;
     std::unordered_map<int, std::shared_ptr<Player>> local_players_;
     std::unordered_set<std::shared_ptr<Player>>      active_players_;
 };

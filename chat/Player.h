@@ -31,9 +31,16 @@ public:
 
     bool newMessage(std::shared_ptr<Message>&& msg);
 
-    void  handleMessageQueue();
+    void handleMessageQueue();
 
     void sendBroadcastMessage(const MessageList& msg_list);
+
+    void addBlackList(int uid);
+
+    void delBlackList(int uid);
+
+    void initBlackList();
+
 private:
     void sendMessageByWeak(const std::shared_ptr<Message>& msg, RequestType type);
 
@@ -42,13 +49,15 @@ private:
     void unlockProxyConn();
 
     void sendMessageByShared(const std::shared_ptr<Message>& msg, RequestType type) {
+        if (isInBlackList(msg))
+            return;
         user_header_.request_type = static_cast<int>(type);
         auto [str, len] = formatMessage(user_header_, msg);
         proxy_conn_share_->send(str, len);
     }
 
     bool isInBlackList(const std::shared_ptr<Message>& msg);
-    
+
     PlayerInfo info_;
     MessageList message_list_;
     Header user_header_;

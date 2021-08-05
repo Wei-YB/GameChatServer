@@ -26,9 +26,8 @@ void Player::handleMessageQueue() {
     lockProxyConn();
     if (message_list_.size() < 100) {
         // list contains less then 100 tips message, just send
-        for (auto& msg : message_list_) {
+        for (auto& msg : message_list_)
             sendMessageByShared(msg, RequestType::CHAT);
-        }
         message_list_.clear();
     }
     else {
@@ -72,7 +71,7 @@ void Player::unlockProxyConn() {
 
 bool Player::isInBlackList(const std::shared_ptr<Message>& msg) {
     if (black_list_.count(msg->sender())) {
-        LOG_TRACE << "get message from block player: " <<
+        LOG_DEBUG << "get message from block player: " <<
             "[" << msg->sender() << ", " << black_list_[msg->sender()] << "]";
         return true;
     }

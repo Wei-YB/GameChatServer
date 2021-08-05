@@ -86,8 +86,9 @@ int main() {
                                   auto [index, server] = newChatClient(&loop, info.ip(), info.port());
                                   if (area == 1) {
                                       server->setConnectionCallback([i = index](auto conn) {
-                                          if (conn->disconnected())
+                                          if (conn->disconnected()) {
                                               environment->chat_server_area_1.reset();
+                                          }
                                       });
                                       environment->chat_server_area_1 = server;
                                   }
