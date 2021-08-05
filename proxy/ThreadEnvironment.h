@@ -65,10 +65,10 @@ struct ThreadEnvironment {
 
     Hiredis redis_client;
 
-    std::unordered_map<int, int> user_info;
-    std::unordered_map<int, std::weak_ptr<TcpConnection>>                 login_clients;
-    std::unordered_map<int, std::pair<int, std::weak_ptr<TcpConnection>>> login_requests;
-    std::unordered_map<int, std::pair<int, std::weak_ptr<TcpConnection>>> sign_up_requests;
+    std::unordered_map<int, int>                                                user_info;
+    std::unordered_map<int, std::weak_ptr<TcpConnection>>                       login_clients;
+    std::unordered_map<int, std::tuple<int, int, std::weak_ptr<TcpConnection>>> login_requests;
+    std::unordered_map<int, std::pair<int, std::weak_ptr<TcpConnection>>>       sign_up_requests;
 
     int getStamp();
 

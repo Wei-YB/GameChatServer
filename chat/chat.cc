@@ -13,11 +13,29 @@
 using namespace chatServer::chat;
 
 
-int main() {
+chatServer::ServerInfo current_server;
+
+std::string current_server_str;
+
+int main(int argc, char* argv[]) {
+
+    if(argc != 3) {
+        std::cout << "usage: ChatServer [area] [port]" << std::endl;
+        return 0;
+    }
+
+    auto area = atoi(argv[1]);
+    current_server.set_area(area);
+    current_server.set_port(atoi(argv[2]));
+    current_server.set_ip("127.0.0.1");
+    current_server.set_type(chatServer::ServerInfo_ServerType_CHAT_SERVER);
+
+    current_server_str = current_server.SerializeAsString();
+
     muduo::g_logLevel = muduo::Logger::DEBUG;
     
     EventLoop main_loop;
-    TcpServer server(&main_loop, muduo::net::InetAddress(12346), "ChatServer");
+    TcpServer server(&main_loop, muduo::net::InetAddress(current_server.port()), "ChatServer");
 
     redis_client = new Hiredis(&main_loop, muduo::net::InetAddress("127.0.0.1", 6379));
     redis_client->connect();
@@ -43,10 +61,11 @@ int main() {
         chat_lobby.handleMessage();
     });
 
-    main_loop.runAfter(1, []() {
-        redis_client->command([](auto, auto){return 0;},
-        "PUBLISH service_notify 127.0.0.1:12346");});
+    // TODO: need to fix lots of bugs
+    main_loop.runAfter(1, [&]() {
+        chat_lobby.start(&main_loop);});
 
+    LOG_INFO << "chat server start on " << server.ipPort();
     server.start();
     main_loop.loop();
     return 0;

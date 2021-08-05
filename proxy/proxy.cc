@@ -24,13 +24,13 @@ using chatServer::ServerInfo;
 
 
 std::pair<int, std::shared_ptr<TcpClient>> newChatClient(EventLoop* loop, const std::string& ip, int port) {
-    auto server = std::make_shared<TcpClient>(loop, InetAddress(ip, port), "Chat Client");
-    auto index = environment->getStamp();
+    auto                              server = std::make_shared<TcpClient>(loop, InetAddress(ip, port), "Chat Client");
+    auto                              index = environment->getStamp();
     server->setMessageCallback([](auto, auto buffer, auto) {
         environment->onChatServerMessage(buffer);
     });
     server->connect();
-    return { index, server };
+    return {index, server};
 }
 
 int main() {
@@ -86,13 +86,15 @@ int main() {
                                   auto [index, server] = newChatClient(&loop, info.ip(), info.port());
                                   if (area == 1) {
                                       server->setConnectionCallback([i = index](auto conn) {
-                                          environment->chat_server_area_1.reset();
+                                          if (conn->disconnected())
+                                              environment->chat_server_area_1.reset();
                                       });
                                       environment->chat_server_area_1 = server;
                                   }
                                   else {
                                       server->setConnectionCallback([i = index](auto conn) {
-                                          environment->chat_server_area_2.reset();
+                                          if (conn->disconnected())
+                                              environment->chat_server_area_2.reset();
                                       });
                                       environment->chat_server_area_2 = server;
                                   }

@@ -5,7 +5,8 @@
 #include "Header.h"
 #include "message.pb.h"
 
-
+extern chatServer::ServerInfo current_server;
+extern std::string current_server_str;
 namespace chatServer::chat {
 
 using muduo::net::TcpClient;

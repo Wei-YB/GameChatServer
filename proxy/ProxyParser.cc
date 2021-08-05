@@ -54,7 +54,7 @@ void ProxyParser::parseLogin(Buffer* buffer) {
     }
     buffer->retrieve(sizeof header_);
     auto stamp = environment->getStamp();
-    environment->login_requests.insert({stamp, {header_.stamp, conn_ptr_}});
+    environment->login_requests.insert({stamp, {header_.stamp, header_.uid, conn_ptr_}});
     header_.stamp = stamp;
     // fixed: did not change the stamp in buffer
     // environment->data_server.connection()->send(buffer->peek(), header_.request_length());

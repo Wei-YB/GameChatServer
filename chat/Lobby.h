@@ -3,10 +3,9 @@
 #include <list>
 #include <message.pb.h>
 #include <muduo/net/TcpClient.h>
-
+#include <muduo/net/EventLoop.h>
 #include "HiRedis.h"
 #include "Player.h"
-
 
 namespace chatServer::chat {
 class ProxyConnection;
@@ -28,20 +27,27 @@ public:
     void newMessage(std::shared_ptr<Message>&& msg);
     void handleMessage();
 
+
+    // new server notify for the server list: only for the chat server
+     void newServerInfo(muduo::net::EventLoop* loop, const std::string& info);
+
+    void start(muduo::net::EventLoop* loop);
+
 private:
     void broadcastMessage(std::shared_ptr<Message>&& msg);
 
     void privateChatMessage(std::shared_ptr<Message>&& msg);
 
+    void forwardMessage(std::shared_ptr<Message> msg, std::string server);
 
-    TcpClient* other_lobby_server_ = nullptr;
-    int        current_area = 1;
+    void offlineMessage(std::shared_ptr<Message>&& msg);
+
+
+    void handleOfflineMessage(hiredis::Hiredis* client, redisReply* reply);
+
+    std::unordered_map<std::string, std::shared_ptr<TcpClient>> other_servers_;
 
     std::list<std::shared_ptr<Message>> broadcast_message_list_;
-
-    // std::unordered_set<ProxyConnection*> active_clients_;
-    // std::unordered_map<int, TcpClient*> other_clients_;
-    // std::unordered_map<int, ProxyConnection*> local_clients_;
 
     std::unordered_map<int, std::shared_ptr<Player>> local_players_;
     std::unordered_set<std::shared_ptr<Player>>      active_players_;
