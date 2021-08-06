@@ -258,6 +258,7 @@ class PlayerInfo final :
     kSignUpTimeFieldNumber = 4,
     kAreaFieldNumber = 5,
     kRankFieldNumber = 6,
+    kOnlineFieldNumber = 7,
   };
   // string nickname = 2;
   void clear_nickname();
@@ -323,6 +324,15 @@ class PlayerInfo final :
   void _internal_set_rank(::PROTOBUF_NAMESPACE_ID::int32 value);
   public:
 
+  // int32 online = 7;
+  void clear_online();
+  ::PROTOBUF_NAMESPACE_ID::int32 online() const;
+  void set_online(::PROTOBUF_NAMESPACE_ID::int32 value);
+  private:
+  ::PROTOBUF_NAMESPACE_ID::int32 _internal_online() const;
+  void _internal_set_online(::PROTOBUF_NAMESPACE_ID::int32 value);
+  public:
+
   // @@protoc_insertion_point(class_scope:chatServer.PlayerInfo)
  private:
   class _Internal;
@@ -336,6 +346,7 @@ class PlayerInfo final :
   ::PROTOBUF_NAMESPACE_ID::int32 signuptime_;
   ::PROTOBUF_NAMESPACE_ID::int32 area_;
   ::PROTOBUF_NAMESPACE_ID::int32 rank_;
+  ::PROTOBUF_NAMESPACE_ID::int32 online_;
   mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   friend struct ::TableStruct_message_2eproto;
 };
@@ -1251,6 +1262,26 @@ inline void PlayerInfo::_internal_set_rank(::PROTOBUF_NAMESPACE_ID::int32 value)
 inline void PlayerInfo::set_rank(::PROTOBUF_NAMESPACE_ID::int32 value) {
   _internal_set_rank(value);
   // @@protoc_insertion_point(field_set:chatServer.PlayerInfo.rank)
+}
+
+// int32 online = 7;
+inline void PlayerInfo::clear_online() {
+  online_ = 0;
+}
+inline ::PROTOBUF_NAMESPACE_ID::int32 PlayerInfo::_internal_online() const {
+  return online_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::int32 PlayerInfo::online() const {
+  // @@protoc_insertion_point(field_get:chatServer.PlayerInfo.online)
+  return _internal_online();
+}
+inline void PlayerInfo::_internal_set_online(::PROTOBUF_NAMESPACE_ID::int32 value) {
+  
+  online_ = value;
+}
+inline void PlayerInfo::set_online(::PROTOBUF_NAMESPACE_ID::int32 value) {
+  _internal_set_online(value);
+  // @@protoc_insertion_point(field_set:chatServer.PlayerInfo.online)
 }
 
 // -------------------------------------------------------------------

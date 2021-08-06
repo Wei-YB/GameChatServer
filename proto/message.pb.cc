@@ -24,7 +24,8 @@ constexpr PlayerInfo::PlayerInfo(
   , uid_(0)
   , signuptime_(0)
   , area_(0)
-  , rank_(0){}
+  , rank_(0)
+  , online_(0){}
 struct PlayerInfoDefaultTypeInternal {
   constexpr PlayerInfoDefaultTypeInternal()
     : _instance(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized{}) {}
@@ -108,6 +109,7 @@ const ::PROTOBUF_NAMESPACE_ID::uint32 TableStruct_message_2eproto::offsets[] PRO
   PROTOBUF_FIELD_OFFSET(::chatServer::PlayerInfo, signuptime_),
   PROTOBUF_FIELD_OFFSET(::chatServer::PlayerInfo, area_),
   PROTOBUF_FIELD_OFFSET(::chatServer::PlayerInfo, rank_),
+  PROTOBUF_FIELD_OFFSET(::chatServer::PlayerInfo, online_),
   ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::chatServer::PlayerList, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -142,10 +144,10 @@ const ::PROTOBUF_NAMESPACE_ID::uint32 TableStruct_message_2eproto::offsets[] PRO
 };
 static const ::PROTOBUF_NAMESPACE_ID::internal::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
   { 0, -1, sizeof(::chatServer::PlayerInfo)},
-  { 11, -1, sizeof(::chatServer::PlayerList)},
-  { 17, -1, sizeof(::chatServer::Message)},
-  { 27, -1, sizeof(::chatServer::MessageList)},
-  { 33, -1, sizeof(::chatServer::ServerInfo)},
+  { 12, -1, sizeof(::chatServer::PlayerList)},
+  { 18, -1, sizeof(::chatServer::Message)},
+  { 28, -1, sizeof(::chatServer::MessageList)},
+  { 34, -1, sizeof(::chatServer::ServerInfo)},
 };
 
 static ::PROTOBUF_NAMESPACE_ID::Message const * const file_default_instances[] = {
@@ -157,27 +159,27 @@ static ::PROTOBUF_NAMESPACE_ID::Message const * const file_default_instances[] =
 };
 
 const char descriptor_table_protodef_message_2eproto[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) =
-  "\n\rmessage.proto\022\nchatServer\"m\n\nPlayerInf"
+  "\n\rmessage.proto\022\nchatServer\"}\n\nPlayerInf"
   "o\022\013\n\003uid\030\001 \001(\005\022\020\n\010nickname\030\002 \001(\t\022\020\n\010pass"
   "word\030\003 \001(\t\022\022\n\nsignUpTime\030\004 \001(\005\022\014\n\004area\030\005"
-  " \001(\005\022\014\n\004rank\030\006 \001(\005\"5\n\nPlayerList\022\'\n\007play"
-  "ers\030\001 \003(\0132\026.chatServer.PlayerInfo\"\354\001\n\007Me"
-  "ssage\022-\n\004type\030\001 \001(\0162\037.chatServer.Message"
-  ".MessageType\022\r\n\005stamp\030\002 \001(\005\022\016\n\006sender\030\003 "
-  "\001(\005\022\020\n\010receiver\030\004 \001(\005\022\013\n\003msg\030\005 \001(\t\"t\n\013Me"
-  "ssageType\022\017\n\013ONLINE_CHAT\020\000\022\020\n\014OFFLINE_CH"
-  "AT\020\001\022\023\n\017LOBBY_BROADCAST\020\002\022\024\n\020SERVER_BROA"
-  "DCAST\020\003\022\n\n\006ONLINE\020\004\022\013\n\007OFFLINE\020\005\"4\n\013Mess"
-  "ageList\022%\n\010messages\030\001 \003(\0132\023.chatServer.M"
-  "essage\"\247\001\n\nServerInfo\022\n\n\002ip\030\001 \001(\t\022\014\n\004por"
-  "t\030\002 \001(\005\022\014\n\004area\030\003 \001(\005\022/\n\004type\030\004 \001(\0162!.ch"
-  "atServer.ServerInfo.ServerType\"@\n\nServer"
-  "Type\022\017\n\013DATA_SERVER\020\000\022\017\n\013CHAT_SERVER\020\001\022\020"
-  "\n\014PROXY_SERVER\020\002b\006proto3"
+  " \001(\005\022\014\n\004rank\030\006 \001(\005\022\016\n\006online\030\007 \001(\005\"5\n\nPl"
+  "ayerList\022\'\n\007players\030\001 \003(\0132\026.chatServer.P"
+  "layerInfo\"\354\001\n\007Message\022-\n\004type\030\001 \001(\0162\037.ch"
+  "atServer.Message.MessageType\022\r\n\005stamp\030\002 "
+  "\001(\005\022\016\n\006sender\030\003 \001(\005\022\020\n\010receiver\030\004 \001(\005\022\013\n"
+  "\003msg\030\005 \001(\t\"t\n\013MessageType\022\017\n\013ONLINE_CHAT"
+  "\020\000\022\020\n\014OFFLINE_CHAT\020\001\022\023\n\017LOBBY_BROADCAST\020"
+  "\002\022\024\n\020SERVER_BROADCAST\020\003\022\n\n\006ONLINE\020\004\022\013\n\007O"
+  "FFLINE\020\005\"4\n\013MessageList\022%\n\010messages\030\001 \003("
+  "\0132\023.chatServer.Message\"\247\001\n\nServerInfo\022\n\n"
+  "\002ip\030\001 \001(\t\022\014\n\004port\030\002 \001(\005\022\014\n\004area\030\003 \001(\005\022/\n"
+  "\004type\030\004 \001(\0162!.chatServer.ServerInfo.Serv"
+  "erType\"@\n\nServerType\022\017\n\013DATA_SERVER\020\000\022\017\n"
+  "\013CHAT_SERVER\020\001\022\020\n\014PROXY_SERVER\020\002b\006proto3"
   ;
 static ::PROTOBUF_NAMESPACE_ID::internal::once_flag descriptor_table_message_2eproto_once;
 const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable descriptor_table_message_2eproto = {
-  false, false, 664, descriptor_table_protodef_message_2eproto, "message.proto", 
+  false, false, 680, descriptor_table_protodef_message_2eproto, "message.proto", 
   &descriptor_table_message_2eproto_once, nullptr, 0, 5,
   schemas, file_default_instances, TableStruct_message_2eproto::offsets,
   file_level_metadata_message_2eproto, file_level_enum_descriptors_message_2eproto, file_level_service_descriptors_message_2eproto,
@@ -271,8 +273,8 @@ PlayerInfo::PlayerInfo(const PlayerInfo& from)
       GetArenaForAllocation());
   }
   ::memcpy(&uid_, &from.uid_,
-    static_cast<size_t>(reinterpret_cast<char*>(&rank_) -
-    reinterpret_cast<char*>(&uid_)) + sizeof(rank_));
+    static_cast<size_t>(reinterpret_cast<char*>(&online_) -
+    reinterpret_cast<char*>(&uid_)) + sizeof(online_));
   // @@protoc_insertion_point(copy_constructor:chatServer.PlayerInfo)
 }
 
@@ -281,8 +283,8 @@ nickname_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlr
 password_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
 ::memset(reinterpret_cast<char*>(this) + static_cast<size_t>(
     reinterpret_cast<char*>(&uid_) - reinterpret_cast<char*>(this)),
-    0, static_cast<size_t>(reinterpret_cast<char*>(&rank_) -
-    reinterpret_cast<char*>(&uid_)) + sizeof(rank_));
+    0, static_cast<size_t>(reinterpret_cast<char*>(&online_) -
+    reinterpret_cast<char*>(&uid_)) + sizeof(online_));
 }
 
 PlayerInfo::~PlayerInfo() {
@@ -317,8 +319,8 @@ void PlayerInfo::Clear() {
   nickname_.ClearToEmpty();
   password_.ClearToEmpty();
   ::memset(&uid_, 0, static_cast<size_t>(
-      reinterpret_cast<char*>(&rank_) -
-      reinterpret_cast<char*>(&uid_)) + sizeof(rank_));
+      reinterpret_cast<char*>(&online_) -
+      reinterpret_cast<char*>(&uid_)) + sizeof(online_));
   _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
 }
 
@@ -371,6 +373,13 @@ const char* PlayerInfo::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID:
       case 6:
         if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 48)) {
           rank_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
+          CHK_(ptr);
+        } else goto handle_unusual;
+        continue;
+      // int32 online = 7;
+      case 7:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 56)) {
+          online_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
           CHK_(ptr);
         } else goto handle_unusual;
         continue;
@@ -447,6 +456,12 @@ failure:
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteInt32ToArray(6, this->_internal_rank(), target);
   }
 
+  // int32 online = 7;
+  if (this->_internal_online() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteInt32ToArray(7, this->_internal_online(), target);
+  }
+
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::InternalSerializeUnknownFieldsToArray(
         _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
@@ -505,6 +520,13 @@ size_t PlayerInfo::ByteSizeLong() const {
         this->_internal_rank());
   }
 
+  // int32 online = 7;
+  if (this->_internal_online() != 0) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::Int32Size(
+        this->_internal_online());
+  }
+
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
     return ::PROTOBUF_NAMESPACE_ID::internal::ComputeUnknownFieldsSize(
         _internal_metadata_, total_size, &_cached_size_);
@@ -551,6 +573,9 @@ void PlayerInfo::MergeFrom(const PlayerInfo& from) {
   if (from._internal_rank() != 0) {
     _internal_set_rank(from._internal_rank());
   }
+  if (from._internal_online() != 0) {
+    _internal_set_online(from._internal_online());
+  }
   _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
 }
 
@@ -579,8 +604,8 @@ void PlayerInfo::InternalSwap(PlayerInfo* other) {
       &other->password_, other->GetArenaForAllocation()
   );
   ::PROTOBUF_NAMESPACE_ID::internal::memswap<
-      PROTOBUF_FIELD_OFFSET(PlayerInfo, rank_)
-      + sizeof(PlayerInfo::rank_)
+      PROTOBUF_FIELD_OFFSET(PlayerInfo, online_)
+      + sizeof(PlayerInfo::online_)
       - PROTOBUF_FIELD_OFFSET(PlayerInfo, uid_)>(
           reinterpret_cast<char*>(&uid_),
           reinterpret_cast<char*>(&other->uid_));
