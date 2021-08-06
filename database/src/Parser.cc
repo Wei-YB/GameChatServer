@@ -15,6 +15,7 @@ static const auto* login_cmd =
 
 static const auto* info_cmd =
     "local uid = redis.call('GET', KEYS[1]..':uid');"
+    "if(uid == false) then return 0 end;"
     "local info = redis.call('LRANGE', uid..':player', 0, -1);"
     "local status = redis.call('GET', uid..':online');"
     "return {info, status};";
@@ -47,6 +48,7 @@ void Parser::parseData(Buffer* buffer) {
         // LOG_WARN << "receive bad head";
         parseBadHead(buffer);
     }
+    spdlog::info("got request head: {0}", header_.toString());
     const auto request_type = static_cast<RequestType>(header_.request_type);
     switch (request_type) {
     case RequestType::SIGN_UP:
@@ -67,10 +69,37 @@ std::shared_ptr<PlayerInfo> Parser::getPlayerInfo(Buffer* buffer) const {
 }
 
 void Parser::parseInfo(std::shared_ptr<PlayerInfo> info) {
+    spdlog::debug("try to get info: {0}", info->nickname());
     redis_client->command([this, info, request_head = header_](auto, redisReply* reply) mutable {
-        
+        if(reply->type == REDIS_REPLY_INTEGER) {
+            spdlog::error("username not exists!");
+            request_head.setFail();
+            response(formatMessage(request_head));
+            return 0;
+        }
+        if(reply->type != REDIS_REPLY_ARRAY) {
+            spdlog::error("bad redis response when get info, type is {0}", reply->type);
+            request_head.setFail();
+            response(formatMessage(request_head));
+            return 0;
+        }
+        auto player_info = reply->element[0];
+        if (reply->element[1]->type == REDIS_REPLY_NIL) {
+            info->set_online(0);
+        }else {
+            ServerInfo server_info;
+            server_info.ParseFromString(reply->element[1]->str);
+            info->set_online(server_info.area());
+        }
+        auto info_reply = reply->element[0];
+        info->set_uid(std::stoi(info_reply->element[4]->str));
+        info->set_signuptime(std::stoi(info_reply->element[1]->str));
+
+        header_.setOk();
+        response(formatMessage(header_, info));
+
         return 0;
-    }, "EVAL %s 1 %s", info_cmd, info->nickname());
+    }, "EVAL %s 1 %s", info_cmd, info->nickname().c_str());
 }
 
 void Parser::disConnect() {

@@ -17,10 +17,10 @@ void ProxyParser::parseData(muduo::net::Buffer* buffer) {
         break;
     case chatServer::RequestType::INFO:
         parseInfo(buffer);
+        break;
     case chatServer::RequestType::CHAT:
     case chatServer::RequestType::ADD_BLACK_LIST:
     case chatServer::RequestType::DEL_BLACK_LIST:
-    
     case chatServer::RequestType::LOGOUT:
         parseNormalRequest(buffer);
         break;

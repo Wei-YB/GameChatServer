@@ -198,6 +198,25 @@ vector<string>&  shrink(vector<string>& args, int size) {
     return args;
 }
 
+void Info(const vector<string>& args) {
+    if (g_conn < 0) {
+        cout << "not login" << endl;
+        return;
+    }
+    if (args.size() != 2) {
+        cout << "INFO <name>" << endl;
+        return;
+    }
+    auto player_info = std::make_shared<PlayerInfo>();
+    player_info->set_nickname(args[1]);
+    Header header;
+    header.uid = g_uid;
+    header.request_type = static_cast<int>(RequestType::INFO);
+    header.stamp = 103;
+    auto [str, len] = formatMessage(header, player_info);
+    write(g_conn, str, len);
+}
+
 void output_func() {
     co_enable_hook_sys();
     cout << "input coroutine enable" << endl;
@@ -227,6 +246,8 @@ void output_func() {
             Broadcast(shrink(args, 2));
         }else if(args[0] == "LOGOUT") {
             Logout(args);
+        }else if(args[0] == "INFO") {
+            Info(args);
         }
         else {
             cout << "unknown command, please retry" << endl;
@@ -242,15 +263,19 @@ void handleResponse(const Header& header, const char* data) {
         return;
     }
     auto       str = string(data, header.data_length);
-    PlayerInfo info;
-    info.ParseFromString(str);
-    if(header.stamp == 102) {
-        // this is login
-        user_info = info;
+    if (header.stamp > 100)
+    {
+        PlayerInfo info;
+        info.ParseFromString(str);
+        if (header.stamp == 102) {
+            // this is login
+            user_info = info;
+            g_uid = info.uid();
+        }
+        cout << "get response with " << info.DebugString() << endl;
     }
 
-    cout << "get response with " << info.DebugString() << endl;
-    g_uid = info.uid();
+    
 }
 
 void handleNotify(const Header& header, const char* data) {

@@ -22,9 +22,11 @@ using namespace chatServer::database;
 
 // how to create redis client for each loop
 int main(int argc, char* argv[]) {
+    std::cout << "server will start... " << std::endl;
+    std::cout << "going to daemon... " << std::endl;
     daemon(1, 0);
 
-    auto logger = spdlog::basic_logger_mt("logger", "logs/log.txt");
+    auto logger = spdlog::basic_logger_mt("logger", "./log.txt");
     spdlog::set_default_logger(logger);
     spdlog::set_level(spdlog::level::debug);
     spdlog::flush_on(spdlog::level::info);

@@ -20,7 +20,7 @@ void Lobby::login(std::shared_ptr<PlayerInfo> player_info, const TcpConnectionPt
 
     redis_client->command([=](auto, redisReply* reply) {
         return initBlackList(uid, reply);
-    }, "LRANGE 0 -1 %s:%d", "black", uid);
+    }, "LRANGE %s:%d 0 -1", "black", uid);
 
     broadcastMessage(onlineNotify(uid));
 }
@@ -250,6 +250,9 @@ void Lobby::start(muduo::net::EventLoop* loop) {
 int Lobby::initBlackList(int uid, redisReply* reply) {
     if (reply->type == REDIS_REPLY_ARRAY) {
         local_players_[uid]->initBlackList(reply);
+    }
+    else if (reply->type == REDIS_REPLY_NIL) {
+        LOG_DEBUG << "no black list";
     }
     else {
         LOG_ERROR << "bad redis reply when get black list";

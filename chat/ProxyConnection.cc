@@ -42,9 +42,9 @@ void chatServer::chat::ProxyConnection::handleLogin(Buffer* buffer) {
     redis_client->command([this, info, request_head = header_](Hiredis* redis, redisReply* reply) mutable {
         if (reply->type == REDIS_REPLY_INTEGER) {
             LOG_DEBUG << "bad username";
-        }
-        else if (reply->type != REDIS_REPLY_ARRAY) {
-            LOG_ERROR << "redis login error";
+            request_head.setFail(-1);
+            sendMessage(formatMessage(request_head));
+            return 0;
         }
         if (reply->type != REDIS_REPLY_ARRAY) {
             request_head.setFail(-1);
@@ -58,6 +58,7 @@ void chatServer::chat::ProxyConnection::handleLogin(Buffer* buffer) {
             // bad password
             request_head.setFail(-2);
             sendMessage(formatMessage(request_head));
+            return 0;
         }
         // valid login
         request_head.setOk();

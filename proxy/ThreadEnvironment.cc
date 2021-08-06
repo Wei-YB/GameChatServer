@@ -6,7 +6,7 @@ thread_local ThreadEnvironment* environment;
 
 ThreadEnvironment::ThreadEnvironment(EventLoop* loop):
     data_server(loop, InetAddress("127.0.0.1", 12345),
-                "Database Client"),
+        "Database Client"),
     redis_client(loop, InetAddress("127.0.0.1", 6379)),
     current_stamp_(1) {
     data_server.connect();
@@ -25,7 +25,12 @@ void ThreadEnvironment::onDataServerMessage(Buffer* buffer) {
         auto uid = head.uid;
         // check the uid is in login_clients?
         auto stamp = head.stamp;
-        if (sign_up_requests.count(stamp)) {
+        if (login_clients.count(uid)) {
+            // just forward
+            auto player_conn = login_clients[uid];
+            player_conn.lock()->send(buffer->peek(), head.request_length());
+        }
+        else if (sign_up_requests.count(stamp)) {
             // receive a response from database service
             auto [origin_stamp, client_conn] = sign_up_requests[stamp];
             sign_up_requests.erase(stamp);
@@ -36,8 +41,7 @@ void ThreadEnvironment::onDataServerMessage(Buffer* buffer) {
                 LOG_INFO << "send " << len << " bytes to client";
             }
         }
-        else
-        {
+        else {
             LOG_ERROR << " invalid response to client";
         }
         buffer->retrieve(head.request_length());
