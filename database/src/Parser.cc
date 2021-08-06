@@ -13,6 +13,12 @@ static const auto* login_cmd =
     "local uid =  redis.call('GET', KEYS[1]..':uid'); "
     "return {uid, redis.call('LRANGE', uid..':player', 0, -1)};";
 
+static const auto* info_cmd =
+    "local uid = redis.call('GET', KEYS[1]..':uid');"
+    "local info = redis.call('LRANGE', uid..':player', 0, -1);"
+    "local status = redis.call('GET', uid..':online');"
+    "return {info, status};";
+
 static const auto* sign_up_cmd =
     "if(redis.call('EXISTS', KEYS[1]..':uid') == 1) "
     "then return 0 end;"
@@ -62,21 +68,9 @@ std::shared_ptr<PlayerInfo> Parser::getPlayerInfo(Buffer* buffer) const {
 
 void Parser::parseInfo(std::shared_ptr<PlayerInfo> info) {
     redis_client->command([this, info, request_head = header_](auto, redisReply* reply) mutable {
-        if (reply->type == REDIS_REPLY_NIL) {
-            request_head.setFail();
-            response(formatMessage(request_head));
-        }
-        else {
-            assert(reply->type == REDIS_REPLY_ARRAY);
-            assert(reply->elements == 3);
-            info->set_nickname(reply->element[2]->str);
-            info->set_signuptime(std::stoi(reply->element[0]->str));
-            info->set_password(std::string(reply->element[1]->str, reply->element[1]->len));
-            request_head.setOk();
-            response(formatMessage(request_head, info));
-        }
+        
         return 0;
-    }, "LRANGE %d:player 0 -1", header_.uid);
+    }, "EVAL %s 1 %s", info_cmd, info->nickname());
 }
 
 void Parser::disConnect() {
