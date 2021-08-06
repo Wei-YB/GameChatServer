@@ -27,6 +27,8 @@ public:
 
     void parseLogin(Buffer* buffer);
 
+    void parseInfo(Buffer* buffer) const;
+
     void parseNormalRequest(Buffer* buffer) const;
 
     void setLogin();

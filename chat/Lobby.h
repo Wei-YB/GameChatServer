@@ -27,12 +27,17 @@ public:
     void newMessage(std::shared_ptr<Message>&& msg);
     void handleMessage();
 
+    void addBlackList(int uid, std::shared_ptr<PlayerInfo> info);
+    void delBlackList(int uid, int black_player);
+    std::shared_ptr<PlayerList> getBlackList(int uid);
 
     void newServerInfo(muduo::net::EventLoop* loop, const std::string& info);
 
     void start(muduo::net::EventLoop* loop);
 
 private:
+    int initBlackList(int uid, redisReply* reply);
+
     void broadcastMessage(std::shared_ptr<Message>&& msg);
 
     void privateChatMessage(std::shared_ptr<Message>&& msg);
@@ -42,6 +47,18 @@ private:
     void offlineMessage(std::shared_ptr<Message>&& msg);
 
     int handleOfflineMessage(int uid, hiredis::Hiredis* client, redisReply* reply);
+
+    std::string formatBlackList(const std::unordered_map<int, std::string>& black_list) const {
+        std::string result;
+        for(auto [uid, name] : black_list) {
+            result += std::to_string(uid);
+            result += ' ';
+            result += name;
+            result += ' ';
+        }
+        result.pop_back();
+        return result;
+    }
 
     std::shared_ptr<Message> onlineNotify(int uid);
 

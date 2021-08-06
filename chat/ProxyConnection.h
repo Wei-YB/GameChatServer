@@ -48,26 +48,33 @@ public:
 
     void handleChat(Buffer* buffer);
 
-    // void handleChatMessage(std::shared_ptr<Message>&& msg);
+    void handleAddBlackList(Buffer* buffer) {
+        auto info = std::make_shared<PlayerInfo>();
+        info->ParseFromString(buffer->retrieveAsString(header_.data_length));
+        auto black_player = info->uid();
+        lobby_.addBlackList(header_.uid, info);
+        auto response         = header_;
+        response.request_type = 0;
+        sendMessage(formatMessage(response));
+    }
 
-    // void handleBroadcastMessage(std::shared_ptr<Message> msg);
+    void handleDelBlackList(Buffer* buffer) {
+        PlayerInfo info;
+        info.ParseFromString(buffer->retrieveAsString(header_.data_length));
+        auto black_player = info.uid();
+        lobby_.delBlackList(header_.uid, black_player);
+        auto response         = header_;
+        response.request_type = 0;
+        sendMessage(formatMessage(response));
+    }
 
-    // void handleMessageQueue();
-    //
-    // void handleMessageQueue(int receiver, const std::list<std::shared_ptr<Message>>& message_list) const {
-    //     LOG_DEBUG << "handle the chat message in player: " << uid_ << ", message count is " << message_list.size();
-    //     Header header;
-    //     header.uid = receiver;
-    //     header.request_type = static_cast<int>(RequestType::CHAT);
-    //     // TODO: use the stamp to mark response
-    //     header.stamp = 0;
-    //     for (const auto& msg : message_list) {
-    //         if (msg->type() == Message_MessageType_ONLINE_CHAT) {
-    //             header.uid = msg->receiver();
-    //         }
-    //         sendMessage(formatMessage(header, msg));
-    //     }
-    // }
+    void handleGetBlackList() {
+        auto player_list = lobby_.getBlackList(header_.uid);
+        auto response    = header_;
+        response.setOk();
+        sendMessage(formatMessage(response, player_list));
+    }
+
 
     void insert(std::shared_ptr<Message>&& msg) {
         queue_.push_back(std::move(msg));

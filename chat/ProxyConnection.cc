@@ -22,6 +22,8 @@ void chatServer::chat::ProxyConnection::parseData(Buffer* buffer) {
     else if (header_.requestType() == RequestType::LOGOUT) {
         assert(header_.data_length == 0);
         lobby_.logout(header_.uid);
+    }else if(header_.requestType() == RequestType::ADD_BLACK_LIST) {
+        handleAddBlackList(buffer);
     }
 }
 

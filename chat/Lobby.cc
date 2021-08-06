@@ -18,14 +18,24 @@ void Lobby::login(std::shared_ptr<PlayerInfo> player_info, const TcpConnectionPt
         return handleOfflineMessage(uid, client, reply);
     }, "LRANGE %s:%d 0 -1", "msg", uid);
 
+    redis_client->command([=](auto, redisReply* reply) {
+        return initBlackList(uid, reply);
+    }, "LRANGE 0 -1 %s:%d", "black", uid);
+
     broadcastMessage(onlineNotify(uid));
 }
 
 void Lobby::logout(int uid) {
     LOG_INFO << "player: " << uid << " logout of server";
     redis_client->command([](auto, auto) { return 0; }, "DEL %d:online", uid);
-    local_players_.erase(uid);
 
+    const auto& black_list = local_players_[uid]->getBlackList();
+
+    redis_client->command([](auto, auto) { return 0; }, "DEL black:%d", uid);
+    if (!black_list.empty())
+        redis_client->command([](auto, auto) { return 0; }, "LPUSH black:%d %s",
+            uid, formatBlackList(local_players_[uid]->getBlackList()).c_str());
+    local_players_.erase(uid);
     auto offline_notify = std::make_shared<Message>();
     offline_notify->set_sender(uid);
     offline_notify->set_type(Message_MessageType_OFFLINE);
@@ -152,6 +162,25 @@ void Lobby::handleMessage() {
     }
 }
 
+void Lobby::addBlackList(int uid, std::shared_ptr<PlayerInfo> info) {
+    local_players_[uid]->addBlackList(info->uid(), info->nickname());
+}
+
+void Lobby::delBlackList(int uid, int black_player) {
+    local_players_[uid]->delBlackList(black_player);
+}
+
+std::shared_ptr<chatServer::PlayerList> Lobby::getBlackList(int uid) {
+    auto player_list       = std::make_shared<PlayerList>();
+    const auto& black_list = local_players_[uid]->getBlackList();
+    for (auto [uid , name] : black_list) {
+        auto player = player_list->add_players();
+        player->set_uid(uid);
+        player->set_nickname(name);
+    }
+    return player_list;
+}
+
 void Lobby::newServerInfo(muduo::net::EventLoop* loop, const std::string& info) {
     ServerInfo server_info;
     server_info.ParseFromString(info);
@@ -216,4 +245,14 @@ void Lobby::start(muduo::net::EventLoop* loop) {
             return 1;
         }, "SUBSCRIBE service_notify");
     });
+}
+
+int Lobby::initBlackList(int uid, redisReply* reply) {
+    if (reply->type == REDIS_REPLY_ARRAY) {
+        local_players_[uid]->initBlackList(reply);
+    }
+    else {
+        LOG_ERROR << "bad redis reply when get black list";
+    }
+    return 0;
 }

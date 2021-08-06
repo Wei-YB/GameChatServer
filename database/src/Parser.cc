@@ -46,8 +46,8 @@ void Parser::parseData(Buffer* buffer) {
     case RequestType::SIGN_UP:
         parseSignUp(getPlayerInfo(buffer));
         break;
-    case RequestType::LOGIN:
-        parseLogin (getPlayerInfo(buffer));
+    case RequestType::INFO:
+        parseInfo (getPlayerInfo(buffer));
         break;
     default:
         parseBadHead(buffer);

@@ -3,6 +3,7 @@
 #include <muduo/net/TcpClient.h>
 
 #include "Header.h"
+#include "HiRedis.h"
 #include "message.pb.h"
 
 extern chatServer::ServerInfo current_server;
@@ -35,14 +36,20 @@ public:
 
     void sendBroadcastMessage(const MessageList& msg_list);
 
-    void addBlackList(int uid);
+    void addBlackList(int uid, const std::string& name);
 
     void delBlackList(int uid);
 
-    void initBlackList();
+    void initBlackList(redisReply* reply);
+
+    const std::unordered_map<int, std::string>& getBlackList() const {
+        return black_list_;
+    }
 
 private:
     void sendMessageByWeak(const std::shared_ptr<Message>& msg, RequestType type);
+
+    
 
     bool lockProxyConn();
 

@@ -9,6 +9,7 @@ message PlayerInfo{
     int32 signUpTime = 4;
     int32 area = 5;
     int32 rank = 6;
+    int32 online = 7;
 }
 
 message PlayerList{

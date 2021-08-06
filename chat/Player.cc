@@ -50,6 +50,22 @@ void Player::sendBroadcastMessage(const MessageList& msg_list) {
     unlockProxyConn();
 }
 
+void Player::addBlackList(int uid, const std::string& name) {
+    black_list_.insert({uid, name});
+}
+
+void Player::delBlackList(int uid) {
+    black_list_.erase(uid);
+}
+
+void Player::initBlackList(redisReply* reply) {
+    for (int i = 0; i < reply->elements / 2; ++i) {
+        auto black_player = std::stoi(reply->element[i * 2]->str);
+        std::string name  = reply->element[i * 2 + 1]->str;
+        black_list_.insert({black_player, name});
+    }
+}
+
 void Player::sendMessageByWeak(const std::shared_ptr<Message>& msg, RequestType type) {
     lockProxyConn();
     sendMessageByShared(msg, type);

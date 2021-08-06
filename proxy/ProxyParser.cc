@@ -15,7 +15,13 @@ void ProxyParser::parseData(muduo::net::Buffer* buffer) {
     case chatServer::RequestType::LOGIN:
         parseLogin(buffer);
         break;
+    case chatServer::RequestType::INFO:
+        parseInfo(buffer);
     case chatServer::RequestType::CHAT:
+    case chatServer::RequestType::ADD_BLACK_LIST:
+    case chatServer::RequestType::DEL_BLACK_LIST:
+    
+    case chatServer::RequestType::LOGOUT:
         parseNormalRequest(buffer);
         break;
     default:
@@ -23,6 +29,12 @@ void ProxyParser::parseData(muduo::net::Buffer* buffer) {
     }
 
 }
+
+void ProxyParser::parseInfo(Buffer* buffer) const {
+    environment->data_server.connection()->send(buffer->peek(), header_.request_length());
+    buffer->retrieve(header_.request_length());
+}
+
 
 
 void ProxyParser::parseSignUp(muduo::net::Buffer* buffer) {
