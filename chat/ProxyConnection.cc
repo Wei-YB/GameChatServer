@@ -1,6 +1,7 @@
 #include "ProxyConnection.h"
 
 #include "Lobby.h"
+#include <spdlog/spdlog.h>
 
 namespace chatServer::chat {
 hiredis::Hiredis* redis_client;
@@ -12,7 +13,7 @@ chatServer::chat::ProxyConnection::ProxyConnection(const TcpConnectionPtr& conn_
 }
 
 void chatServer::chat::ProxyConnection::parseData(Buffer* buffer) {
-    LOG_DEBUG << "receive head: " << header_.toString();
+    spdlog::debug("receive head: {0}", header_.toString());
     if (header_.requestType() == RequestType::LOGIN) {
         handleLogin(buffer);
     }
@@ -22,11 +23,11 @@ void chatServer::chat::ProxyConnection::parseData(Buffer* buffer) {
     else if (header_.requestType() == RequestType::LOGOUT) {
         assert(header_.data_length == 0);
         lobby_.logout(header_.uid);
-    }else if(header_.requestType() == RequestType::ADD_BLACK_LIST) {
+    }
+    else if (header_.requestType() == RequestType::ADD_BLACK_LIST) {
         handleAddBlackList(buffer);
     }
 }
-
 
 
 void chatServer::chat::ProxyConnection::disconnect() {
@@ -41,7 +42,7 @@ void chatServer::chat::ProxyConnection::handleLogin(Buffer* buffer) {
     // redis async call to get information about the user, try check the login state
     redis_client->command([this, info, request_head = header_](Hiredis* redis, redisReply* reply) mutable {
         if (reply->type == REDIS_REPLY_INTEGER) {
-            LOG_DEBUG << "bad username";
+            spdlog::debug("bad username");
             request_head.setFail(-1);
             sendMessage(formatMessage(request_head));
             return 0;
@@ -69,10 +70,10 @@ void chatServer::chat::ProxyConnection::handleLogin(Buffer* buffer) {
         sendMessage(formatMessage(request_head, info));
 
         // change the state to login
-        uid_ = request_head.uid;
+        uid_   = request_head.uid;
         login_ = true;
         lobby_.login(info, ptr_.lock());
-        LOG_INFO << "player: " << uid_ << " login the lobby";
+        spdlog::info("player: {0} login the lobby", uid_);
         return 0;
     }, "EVAL %s 1 %s", login_cmd, info->nickname().c_str());
 }
@@ -80,7 +81,7 @@ void chatServer::chat::ProxyConnection::handleLogin(Buffer* buffer) {
 void chatServer::chat::ProxyConnection::handleChat(Buffer* buffer) {
     auto msg = std::make_shared<Message>();
     msg->ParseFromString(std::string(buffer->peek(), header_.data_length));
-    LOG_DEBUG << "new message from: " << msg->sender() << " to " << msg->receiver();
+    spdlog::debug("new message from: {0} to {1}", msg->sender(), msg->receiver());
     msg->set_stamp(now());
     lobby_.newMessage(std::move(msg));
     buffer->retrieve(header_.data_length);
@@ -97,6 +98,6 @@ void chatServer::chat::ProxyConnection::sendMessage(const std::pair<char*, size_
         conn->send(str, len);
     }
     else {
-        LOG_ERROR << "proxy shutdown";
+        spdlog::error("proxy shutdown");
     }
 }

@@ -76,4 +76,4 @@ private:
     int current_stamp_;
 };
 
-extern  thread_local ThreadEnvironment* environment;
+extern thread_local ThreadEnvironment* environment;

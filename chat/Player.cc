@@ -1,7 +1,5 @@
 #include "Player.h"
-
-#include "muduo/base/Logging.h"
-
+#include <spdlog/spdlog.h>
 using namespace chatServer::chat;
 
 Player::Player(const std::shared_ptr<PlayerInfo>& player_info, const TcpConnectionPtr& proxy):
@@ -87,8 +85,7 @@ void Player::unlockProxyConn() {
 
 bool Player::isInBlackList(const std::shared_ptr<Message>& msg) {
     if (black_list_.count(msg->sender())) {
-        LOG_DEBUG << "get message from block player: " <<
-            "[" << msg->sender() << ", " << black_list_[msg->sender()] << "]";
+        spdlog::debug("get message from block player: [{0}, {1}]", msg->sender(), black_list_[msg->sender()]);
         return true;
     }
     return false;

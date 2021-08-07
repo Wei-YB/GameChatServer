@@ -1,5 +1,7 @@
 #include "Lobby.h"
-#include <muduo/base/Logging.h>
+
+#include <spdlog/spdlog.h>
+
 // #include "Client.h"
 using namespace chatServer::chat;
 
@@ -22,11 +24,11 @@ void Lobby::login(std::shared_ptr<PlayerInfo> player_info, const TcpConnectionPt
         return initBlackList(uid, reply);
     }, "LRANGE %s:%d 0 -1", "black", uid);
 
-    broadcastMessage(onlineNotify(uid));
+    // broadcastMessage(onlineNotify(uid));
 }
 
 void Lobby::logout(int uid) {
-    LOG_INFO << "player: " << uid << " logout of server";
+    spdlog::info("player: {0} logout of server", uid);
     redis_client->command([](auto, auto) { return 0; }, "DEL %d:online", uid);
 
     const auto& black_list = local_players_[uid]->getBlackList();
@@ -41,7 +43,7 @@ void Lobby::logout(int uid) {
     offline_notify->set_type(Message_MessageType_OFFLINE);
     offline_notify->set_msg("offline");
 
-    broadcastMessage(std::move(offline_notify));
+    // broadcastMessage(std::move(offline_notify));
 }
 
 void Lobby::broadcastMessage(std::shared_ptr<Message>&& msg) {
@@ -58,7 +60,7 @@ void Lobby::privateChatMessage(std::shared_ptr<Message>&& msg) {
     }
     else {
         // the receiver may on other server or offline
-        LOG_DEBUG << "the receiver is not on current server";
+        spdlog::debug("the receiver is not on current server");
 
         redis_client->command([this, msg = std::move(msg)](auto, redisReply* reply) mutable {
             if (reply->type == REDIS_REPLY_NIL) {
@@ -69,7 +71,7 @@ void Lobby::privateChatMessage(std::shared_ptr<Message>&& msg) {
                 forwardMessage(msg, info);
             }
             else {
-                LOG_ERROR << "bad reply from redis";
+                spdlog::error("bad reply from redis");
             }
             return 0;
         }, "GET %d:online", receiver);
@@ -78,7 +80,7 @@ void Lobby::privateChatMessage(std::shared_ptr<Message>&& msg) {
 
 void Lobby::forwardMessage(std::shared_ptr<Message> msg, std::string server) {
     if (other_servers_.count(server)) {
-        LOG_DEBUG << "forward message " << msg->DebugString() << " to dest";
+        spdlog::debug("forward message {0} to dest", msg->DebugString());
         auto client = other_servers_[server];
         Header header;
         header.request_type = static_cast<int>(RequestType::CHAT);
@@ -88,17 +90,17 @@ void Lobby::forwardMessage(std::shared_ptr<Message> msg, std::string server) {
         client->connection()->send(str, len);
     }
     else {
-        LOG_WARN << "invalid server id";
+        spdlog::warn("invalid server id");
     }
 }
 
 void Lobby::offlineMessage(std::shared_ptr<Message>&& msg) {
     auto receiver = msg->receiver();
-    LOG_DEBUG << "offline message for " << receiver;
+    spdlog::debug("offline message for ", receiver);
     auto msg_str = msg->SerializeAsString();
     redis_client->command([](auto, redisReply* reply) {
         if (reply->type != REDIS_REPLY_INTEGER) {
-            LOG_ERROR << "bad redis call with ret = " << reply->str;
+            spdlog::error("bad redis call with ret = ", reply->str);
         }
         return 0;
     }, "RPUSH %s:%d %s", "msg", receiver, msg_str.c_str());
@@ -107,7 +109,7 @@ void Lobby::offlineMessage(std::shared_ptr<Message>&& msg) {
 int Lobby::handleOfflineMessage(int uid, hiredis::Hiredis* client, redisReply* reply) {
     auto user = local_players_[uid];
     if (reply->type == REDIS_REPLY_ARRAY) {
-        LOG_DEBUG << "got " << reply->elements << " offline messages";
+        spdlog::debug("got {0} offline message", reply->elements);
         // there is some offline message
         for (int i = 0; i < reply->elements; ++i) {
             auto offline_message = std::make_shared<Message>();
@@ -120,7 +122,7 @@ int Lobby::handleOfflineMessage(int uid, hiredis::Hiredis* client, redisReply* r
         }, "DEL %s:%d", "msg", uid);
     }
     else {
-        LOG_ERROR << "bad redis call to get offline message";
+        spdlog::error("bad redis call to get offline message");
     }
     return 0;
 }
@@ -194,7 +196,7 @@ void Lobby::newServerInfo(muduo::net::EventLoop* loop, const std::string& info) 
         (loop, muduo::net::InetAddress(server_info.ip(), server_info.port()), "other server");
 
     client->connect();
-    LOG_DEBUG << "connect to server " << server_info.DebugString();
+    spdlog::debug("connect to server ", server_info.DebugString());
     other_servers_[info] = client;
 }
 
@@ -232,16 +234,15 @@ void Lobby::start(muduo::net::EventLoop* loop) {
     loop->runAfter(1, [=]() {
         subscribe_client->command([this, loop](auto, redisReply* reply) {
             if (reply->elements == 3 && reply->element[2]->type == REDIS_REPLY_STRING) {
-                LOG_INFO << "got new server info from channel service_notify";
+                spdlog::info("got new server info from channel service_notify");
                 std::string info(reply->element[2]->str, reply->element[2]->len);
                 newServerInfo(loop, info);
-                LOG_DEBUG << "finish notify message handle";
+                spdlog::info("finish notify message handle");
             }
             else if (reply->elements != 3)
-                LOG_ERROR << "bad redis reply";
-            else {
-                LOG_INFO << "got useless info from channel service_notify";
-            }
+                spdlog::error("bad redis reply");
+            else
+                spdlog::info("got useless info from channel service_notify");
             return 1;
         }, "SUBSCRIBE service_notify");
     });
@@ -252,10 +253,10 @@ int Lobby::initBlackList(int uid, redisReply* reply) {
         local_players_[uid]->initBlackList(reply);
     }
     else if (reply->type == REDIS_REPLY_NIL) {
-        LOG_DEBUG << "no black list";
+        spdlog::debug("no black list");
     }
     else {
-        LOG_ERROR << "bad redis reply when get black list";
+        spdlog::error("bad redis reply when get black list");
     }
     return 0;
 }

@@ -1,7 +1,6 @@
 #pragma once
 #include <muduo/net/TcpServer.h>
 #include <muduo/net/EventLoop.h>
-#include <muduo/base/Logging.h>
 #include <HiRedis.h>
 #include <list>
 

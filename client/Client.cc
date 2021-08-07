@@ -219,7 +219,8 @@ void Info(const vector<string>& args) {
 
 void output_func() {
     co_enable_hook_sys();
-    cout << "input coroutine enable" << endl;
+    spdlog::info("input coroutine enable");
+    cout << "please input your command" << endl;
     // block by the user input
     char buffer[1024];
     while (true) {

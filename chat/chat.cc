@@ -9,6 +9,9 @@
 #include "message.pb.h"
 #include "Lobby.h"
 
+#include <spdlog/spdlog.h>
+#include <spdlog/sinks/basic_file_sink.h>
+
 
 using namespace chatServer::chat;
 
@@ -24,6 +27,11 @@ int main(int argc, char* argv[]) {
         return 0;
     }
 
+    auto logger = spdlog::basic_logger_mt("logger", "./chat_server_log.txt");
+    spdlog::set_default_logger(logger);
+    spdlog::set_level(spdlog::level::debug);
+    spdlog::flush_on(spdlog::level::info);
+
     auto area = atoi(argv[1]);
     current_server.set_area(area);
     current_server.set_port(atoi(argv[2]));
@@ -32,7 +40,7 @@ int main(int argc, char* argv[]) {
 
     current_server_str = current_server.SerializeAsString();
 
-    muduo::g_logLevel = muduo::Logger::DEBUG;
+    muduo::g_logLevel = muduo::Logger::ERROR;
     
     EventLoop main_loop;
     TcpServer server(&main_loop, muduo::net::InetAddress(current_server.port()), "ChatServer");
@@ -51,7 +59,7 @@ int main(int argc, char* argv[]) {
     });
 
     server.setMessageCallback([](const TcpConnectionPtr& conn_ptr, auto buffer, auto) {
-        LOG_INFO << " get message from client";
+        spdlog::info(" get message from client");
         boost::any_cast<ProxyConnection>(conn_ptr->getMutableContext())->parse(buffer);
     });
 
@@ -63,9 +71,10 @@ int main(int argc, char* argv[]) {
 
     // TODO: need to fix lots of bugs
     main_loop.runAfter(1, [&]() {
-        chat_lobby.start(&main_loop);});
+        chat_lobby.start(&main_loop);
+    });
 
-    LOG_INFO << "chat server start on " << server.ipPort();
+    spdlog::info("chat server start on {0}", server.ipPort());
     server.start();
     main_loop.loop();
     return 0;

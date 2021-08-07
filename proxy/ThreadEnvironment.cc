@@ -49,12 +49,17 @@ void ThreadEnvironment::onDataServerMessage(Buffer* buffer) {
 }
 
 void ThreadEnvironment::onChatServerMessage(Buffer* buffer) {
-    while (buffer->readableBytes()) {
+    while(buffer->readableBytes() >= sizeof(Header)) {
         Header header(buffer->peek());
+        auto request_length = header.request_length();
+        if(buffer->readableBytes() < request_length) {
+            LOG_INFO << "buffer size not enough, wait";
+            return;
+        }
         LOG_INFO << "receive from chat server: " << header.toString();
         auto uid = header.uid;
         auto stamp = header.stamp;
-        if(login_clients.count(header.uid)) {
+        if (login_clients.count(header.uid)) {
             // forward to a valid player
             auto player_conn = login_clients[uid];
             player_conn.lock()->send(buffer->peek(), header.request_length());
@@ -73,32 +78,64 @@ void ThreadEnvironment::onChatServerMessage(Buffer* buffer) {
                 parser->player_uid = header.uid;
                 parser->setLogin();
             }
-        }else {
-            LOG_ERROR << "invalid response to client";
         }
-        //
-        //
-        // if (header.request_type <= 0) {
-        //     // this is a response
-        //     if (login_requests.count(stamp)) {
-        //         
-        //     }else if(login_clients.count(header.uid)){ // try to find the target
-        //         auto client_conn = login_clients[uid].lock();
-        //
-        //         
-        //     }
-        // }
-        // else if(login_clients.count(header.uid)){ // this is a request
-        //     auto client_conn = login_clients[uid].lock();
-        //     
-        //     // boost::any_cast<ProxyParser>(client_conn->getMutableContext())->player_uid = header.uid;
-        //     client_conn->send(buffer->peek(), header.request_length());
-        // }
-        // else {
-        //     LOG_ERROR << "invalid response to client";
-        // }
-        buffer->retrieve(header.request_length());
+        else {
+            LOG_ERROR << "invalid response to client";
+            buffer->retrieve(header.request_length());
+            continue;
+        }
+        buffer->retrieve(request_length);
     }
+
+
+    // while (buffer->readableBytes()) {
+    //     if (buffer->readableBytes() < sizeof(Header)) {
+    //         LOG_ERROR << "bad buffer size";
+    //         buffer->retrieveAll();
+    //         continue;
+    //     }
+    //     Header header(buffer->peek());
+    //     auto request_length = header.request_length();
+    //     if(buffer->readableBytes() < request_length) {
+    //         LOG_ERROR << "bad buffer size";
+    //         buffer->retrieveAll();
+    //         continue;
+    //     }
+    //
+    //     LOG_INFO << "receive from chat server: " << header.toString();
+    //     auto uid = header.uid;
+    //     auto stamp = header.stamp;
+    //     if(login_clients.count(header.uid)) {
+    //         // forward to a valid player
+    //         auto player_conn = login_clients[uid];
+    //         player_conn.lock()->send(buffer->peek(), header.request_length());
+    //     }
+    //     else if (header.request_type <= 0 && login_requests.count(stamp)) {
+    //         auto [origin_stamp, area, client_conn] = login_requests[stamp];
+    //         login_requests.erase(stamp);
+    //         header.stamp = origin_stamp;
+    //         login_clients.insert({ header.uid, client_conn });
+    //         user_info.insert({ header.uid, area });
+    //         if (auto conn = client_conn.lock()) {
+    //             auto [str, len] = chatServer::formatMessage(header, buffer->peek() + sizeof header);
+    //             conn->send(str, len);
+    //             LOG_INFO << "send " << len << " bytes to client";
+    //             auto parser = boost::any_cast<ProxyParser>(conn->getMutableContext());
+    //             parser->player_uid = header.uid;
+    //             parser->setLogin();
+    //         }
+    //     }else {
+    //         LOG_ERROR << "invalid response to client";
+    //         buffer->retrieveAll();
+    //         continue;
+    //     }
+    //     if (buffer->readableBytes() < request_length) {
+    //         LOG_ERROR << "buffer size < request length";
+    //         buffer->retrieveAll();
+    //     }else {
+    //         buffer->retrieve(request_length);
+    //     }
+    // }
 }
 
 int ThreadEnvironment::getStamp() {

@@ -33,15 +33,61 @@ std::pair<int, std::shared_ptr<TcpClient>> newChatClient(EventLoop* loop, const 
     return {index, server};
 }
 
+void redis_init_subscribe(EventLoop* loop) {
+    auto ret = environment->redis_client.command([loop](auto, redisReply* reply) {
+        if (reply->type == REDIS_REPLY_ARRAY && reply->elements == 3) {
+            if (reply->element[2]->type == REDIS_REPLY_STRING) {
+                std::string serverInfo(reply->element[2]->str, reply->element[2]->len);
+                ServerInfo info;
+                info.ParseFromString(serverInfo);
+                LOG_DEBUG << "got new ip address: " << info.DebugString();
+                auto area = info.area();
+
+                auto [index, server] = newChatClient(loop, info.ip(), info.port());
+                if (area == 1) {
+                    server->setConnectionCallback([i = index](auto conn) {
+                        if (conn->disconnected()) {
+                            environment->chat_server_area_1.reset();
+                            LOG_INFO << "chat server 1 is down";
+                        }
+                    });
+                    environment->chat_server_area_1 = server;
+                    LOG_INFO << "chat server 1 is up";
+                }
+                else {
+                    server->setConnectionCallback([i = index](auto conn) {
+                        if (conn->disconnected()) {
+                            environment->chat_server_area_2.reset();
+                            LOG_INFO << "chat server 2 is down";
+                        }
+                    });
+                    environment->chat_server_area_2 = server;
+                    LOG_INFO << "chat server 2 is up";
+                }
+            }
+        }
+        else {
+            LOG_ERROR << "redis subscribe error";
+        }
+        return 1;
+    }, "SUBSCRIBE service_notify");
+    if (ret == REDIS_ERR) {
+        LOG_ERROR << "redis command error";
+        exit(0);
+    }
+}
+
 int main() {
+    muduo::g_logLevel = muduo::Logger::ERROR;
+
     EventLoop loop;
     TcpServer server(&loop, InetAddress(23456), "proxy");
     // each thread will alloc a client to database and chat server
 
-    server.setThreadNum(0);
-    server.setThreadInitCallback([](auto* loop) {
-        environment = new ThreadEnvironment(loop);
-    });
+    std::vector<EventLoop*> thread_loops;
+
+    server.setThreadNum(4);
+    
 
     server.setConnectionCallback([](const TcpConnectionPtr& connPtr) {
         if (connPtr->connected())
@@ -71,47 +117,17 @@ int main() {
         parser->parse(buffer);
     });
 
-    muduo::g_logLevel = muduo::Logger::DEBUG;
+    LOG_INFO << "thread loops size is " << thread_loops.size();
 
-    loop.runAfter(1, [&loop]() {
-                      auto ret = environment->redis_client.command([&loop](auto, redisReply* reply) {
-                          if (reply->type == REDIS_REPLY_ARRAY && reply->elements == 3) {
-                              if (reply->element[2]->type == REDIS_REPLY_STRING) {
-                                  std::string serverInfo(reply->element[2]->str, reply->element[2]->len);
-                                  ServerInfo  info;
-                                  info.ParseFromString(serverInfo);
-                                  LOG_DEBUG << "got new ip address: " << info.DebugString();
-                                  auto area = info.area();
 
-                                  auto [index, server] = newChatClient(&loop, info.ip(), info.port());
-                                  if (area == 1) {
-                                      server->setConnectionCallback([i = index](auto conn) {
-                                          if (conn->disconnected()) {
-                                              environment->chat_server_area_1.reset();
-                                          }
-                                      });
-                                      environment->chat_server_area_1 = server;
-                                  }
-                                  else {
-                                      server->setConnectionCallback([i = index](auto conn) {
-                                          if (conn->disconnected())
-                                              environment->chat_server_area_2.reset();
-                                      });
-                                      environment->chat_server_area_2 = server;
-                                  }
-                              }
-                          }
-                          else {
-                              LOG_ERROR << "redis subscribe error";
-                          }
-                          return 1;
-                      }, "SUBSCRIBE service_notify");
-                      if (ret == REDIS_ERR) {
-                          LOG_ERROR << "redis command error";
-                          exit(0);
-                      }
-                  }
-    );
+    server.setThreadInitCallback([&thread_loops](auto* loop_ptr) {
+        thread_loops.push_back(loop_ptr);
+        environment = new ThreadEnvironment(loop_ptr);
+
+        loop_ptr->runAfter(1, [loop_ptr]() {
+            redis_init_subscribe(loop_ptr);
+            });
+    });
 
     server.start();
     loop.loop();

@@ -39,11 +39,13 @@ void ProxyParser::parseInfo(Buffer* buffer) const {
 
 void ProxyParser::parseSignUp(muduo::net::Buffer* buffer) {
     if (client_state_ != ClientState::NOT_LOGIN) {
+        LOG_DEBUG << "sign up called when not login";
         buffer->retrieve(header_.request_length());
         header_.setFail(-1);
         auto [str, len] = chatServer::formatMessage(header_);
         // bug: need to check the lock state
         conn_ptr_.lock()->send(str, len);
+        return;
     }
     buffer->retrieve(sizeof header_);
     auto stamp = environment->getStamp();
@@ -63,7 +65,9 @@ void ProxyParser::parseLogin(Buffer* buffer) {
         auto [str, len] = chatServer::formatMessage(header_);
         // bug: need to check the lock state
         conn_ptr_.lock()->send(str, len);
+        return;
     }
+    LOG_DEBUG << "valid request, handle login request";
     buffer->retrieve(sizeof header_);
     auto stamp = environment->getStamp();
     environment->login_requests.insert({stamp, {header_.stamp, header_.uid, conn_ptr_}});
