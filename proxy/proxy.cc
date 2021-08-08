@@ -86,7 +86,7 @@ int main() {
 
     std::vector<EventLoop*> thread_loops;
 
-    server.setThreadNum(4);
+    server.setThreadNum(6);
     
 
     server.setConnectionCallback([](const TcpConnectionPtr& connPtr) {

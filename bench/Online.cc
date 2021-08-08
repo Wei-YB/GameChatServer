@@ -155,7 +155,7 @@ void loginFunc(EventLoop* loop) {
         cout << "finish login and and start chat" << endl;
         return;
     }
-    if(unsend_request_count == 0) {
+    if (unsend_request_count == 0) {
         cout << "send all request, just wait for response" << endl;
         return;
     }
@@ -166,7 +166,7 @@ void loginFunc(EventLoop* loop) {
         client_vec.push_back(NewClient(loop, ++client_index));
     }
     loop->runAfter(0.1, [loop]() {
-        cout << "login func called with unsend request: " << unsend_request_count<< endl;
+        cout << "login func called with unsend request: " << unsend_request_count << endl;
         loginFunc(loop);
     });
 }
@@ -179,7 +179,7 @@ int main(int args, char* argv[]) {
     }
     ip = string(argv[2]);
     string useless;
-    if(cin >>useless) {
+    if (cin >> useless) {
         cout << "start!" << endl;
     }
 
