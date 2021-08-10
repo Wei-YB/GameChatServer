@@ -23,6 +23,7 @@ enum class RequestType {
     BROADCAST_AREA = 11,
     BROADCAST_ALL = 12,
     LOGOUT = 13,
+    PLAYER_LIST = 14,
     MAX_REQUEST_TYPE,
     UNKNOWN,
 };

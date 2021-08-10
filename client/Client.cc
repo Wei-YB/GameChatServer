@@ -7,6 +7,7 @@
 #include <cstring>
 #include <unistd.h>
 #include <co_routine.h>
+#include <time.h>
 
 #include "message.pb.h"
 #include <spdlog/spdlog.h>
@@ -27,6 +28,7 @@ stCoRoutine_t* output_routine;
 
 int g_conn;
 int g_uid = -1;
+int g_area = 0;
 
 PlayerInfo user_info;
 
@@ -61,6 +63,7 @@ void Login(const vector<string>& args) {
             cout << "invalid area, please input 1 or 2" << endl;
             return;
         }
+
         info->set_area(area);
     }
     else {
@@ -70,8 +73,9 @@ void Login(const vector<string>& args) {
 
     Header header{};
     header.request_type = static_cast<int>(RequestType::LOGIN);
-    header.stamp = 102;
-    header.uid = info->area();
+    header.stamp        = 102;
+    header.uid          = info->area();
+    g_area              = info->area();
 
     auto [str, len] = formatMessage(header, info);
     spdlog::info("send {0} byte to server, with head = {1}", len, header.toString());
@@ -114,7 +118,16 @@ void Chat(const vector<string>& args) {
         cout << "invalid state" << endl;
         return;
     }
-    auto receiver = stoi(args[1]);
+
+    auto name = args[1];
+    string uid;
+    while (name.back() != ':') {
+        uid.push_back(name.back());
+        name.pop_back();
+    }
+
+
+    auto receiver = stoi(uid) + 9;
 
     auto msg = std::make_shared<Message>();
     msg->set_sender(g_uid);
@@ -217,10 +230,57 @@ void Info(const vector<string>& args) {
     write(g_conn, str, len);
 }
 
+void AddBlackList(const vector<string>& args) {
+    auto player_info = std::make_shared<PlayerInfo>();
+    player_info->set_nickname(args[1]);
+    auto name = args[1];
+    string uid;
+    while(name.back() != ':') {
+        uid.push_back(name.back());
+        name.pop_back();
+    }
+    
+    player_info->set_uid(stoi(uid) + 9);
+    Header header;
+    header.uid = g_uid;
+    header.request_type = static_cast<int>(RequestType::ADD_BLACK_LIST);
+    header.stamp = 90;
+    auto [str, len] = formatMessage(header, player_info);
+    write(g_conn, str, len);
+}
+
+void DelBlackList(const vector<string>& args) {
+    auto player_info = std::make_shared<PlayerInfo>();
+    player_info->set_nickname(args[1]);
+    auto name = args[1];
+    string uid;
+    while (name.back() != ':') {
+        uid.push_back(name.back());
+        name.pop_back();
+    }
+
+    player_info->set_uid(stoi(uid) + 9);
+    Header header;
+    header.uid = g_uid;
+    header.request_type = static_cast<int>(RequestType::DEL_BLACK_LIST);
+    header.stamp = 90;
+    auto [str, len] = formatMessage(header, player_info);
+    write(g_conn, str, len);
+}
+
+void GetPlayerList(const vector<string>& args) {
+    Header header;
+    header.uid = g_uid;
+    header.request_type = static_cast<int>(RequestType::PLAYER_LIST);
+    header.stamp = 203;
+    auto [str, len] = formatMessage(header);
+    write(g_conn, str, len);
+}
+
 void output_func() {
     co_enable_hook_sys();
     spdlog::info("input coroutine enable");
-    cout << "please input your command" << endl;
+    cout << "please input your command..." << endl;
     // block by the user input
     char buffer[1024];
     while (true) {
@@ -244,11 +304,17 @@ void output_func() {
         }else if(args[0] == "BROADCAST") {
             Broadcast(shrink(args, 2));
         }else if(args[0] == "BROADCASTALL") {
-            Broadcast(shrink(args, 2));
+            BroadcastAll(shrink(args, 2));
         }else if(args[0] == "LOGOUT") {
             Logout(args);
         }else if(args[0] == "INFO") {
             Info(args);
+        }else if(args[0] == "ADD_BLACK_LIST") {
+            AddBlackList(args);
+        }else if(args[0] == "DEL_BLACK_LIST") {
+            DelBlackList(args);
+        }else if(args[0] == "PLAYER_LIST") {
+            GetPlayerList(args);
         }
         else {
             cout << "unknown command, please retry" << endl;
@@ -263,36 +329,77 @@ void handleResponse(const Header& header, const char* data) {
         cout << "got bad response from server" << endl;
         return;
     }
-    auto       str = string(data, header.data_length);
-    if (header.stamp > 100)
-    {
+    auto str = string(data, header.data_length);
+    if (header.stamp > 100 && header.stamp < 200) {
         PlayerInfo info;
         info.ParseFromString(str);
         if (header.stamp == 102) {
             // this is login
             user_info = info;
-            g_uid = info.uid();
+            g_uid     = info.uid();
+            cout << user_info.nickname() << " login success into area: " << g_area << endl;
         }
-        cout << "get response with " << info.DebugString() << endl;
-    }
+        // cout << "get response with " << info.DebugString() << endl;
 
-    
+        else if(header.stamp == 103) {
+            cout << "Nickname: " << info.nickname() << endl;
+            time_t time = info.signuptime();
+            auto time_info = ctime(&time);
+            cout << "Signup Time: " << time_info;
+            if(info.online()) {
+                cout << "Online: True" << endl;
+                cout << "Area: " << info.online() << endl;
+            }else {
+                cout << "Online: False" << endl;
+            }
+        }
+    }
+    else if (header.stamp == 203) {
+        PlayerList players;
+        players.ParseFromString(str);
+        cout << "current area online player: " << endl;
+        for (int i = 0; i < players.players_size(); ++i) {
+            auto& player = players.players(i);
+            cout << "nickname: " << player.nickname() << endl;
+        }
+    }
 }
 
 void handleNotify(const Header& header, const char* data) {
     spdlog::info("got notify from server");
-    if(header.requestType() == RequestType::CHAT) {
+    if (header.requestType() == RequestType::CHAT) {
         std::string str(data, header.data_length);
         Message message;
         message.ParseFromString(str);
-        cout << "new message from " << message.sender() << ": ";
+
+        if (message.type() == Message_MessageType_ONLINE) {
+            if (message.sender() == g_uid) {
+                return;
+            }
+            cout << "player:" << message.sender() - 9 << " is online" << endl;
+            return;
+        }
+        else if (message.type() == Message_MessageType_LOBBY_BROADCAST) {
+            if (message.sender() == g_uid) {
+                return;
+            }
+        }
+        else if (message.type() == Message_MessageType_SERVER_BROADCAST) {
+            if (message.sender() == g_uid) {
+                return;
+            }
+        }
+
+        time_t tm = message.stamp();
+        cout << ctime(&tm);
+        cout << "new message from " << "player:" << message.sender() - 9 << endl;
         cout << message.msg() << endl;
     }
 }
 
 void input_func() {
     // spdlog::info("input coroutine enable");
-    cout << "input coroutine enable" << endl;
+    // cout << "input coroutine enable" << endl;
     char buffer[1024];
     co_enable_hook_sys();
     while (true) {

@@ -24,7 +24,7 @@ void Lobby::login(std::shared_ptr<PlayerInfo> player_info, const TcpConnectionPt
         return initBlackList(uid, reply);
     }, "LRANGE %s:%d 0 -1", "black", uid);
 
-    broadcastMessage(onlineNotify(uid));
+    // broadcastMessage(onlineNotify(uid));
 }
 
 void Lobby::logout(int uid) {

@@ -29,7 +29,7 @@ int main(int argc, char* argv[]) {
 
     auto logger = spdlog::basic_logger_mt("logger", "./chat_server_log.txt");
     spdlog::set_default_logger(logger);
-    spdlog::set_level(spdlog::level::debug);
+    spdlog::set_level(spdlog::level::err);
     spdlog::flush_on(spdlog::level::info);
 
     auto area = atoi(argv[1]);
@@ -50,8 +50,8 @@ int main(int argc, char* argv[]) {
 
     Lobby chat_lobby;
 
-    server.setThreadInitCallback([](auto) {
-    });
+    // server.setThreadInitCallback([](auto) {
+    // });
 
     // each connection means a client online, but not login!, we don't know who is using this client 
     server.setConnectionCallback([&chat_lobby](const TcpConnectionPtr& connPtr) {

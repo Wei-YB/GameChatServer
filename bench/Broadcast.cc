@@ -48,7 +48,7 @@ void Broadcast(int sender) {
     // cout << ":send message from " << sender << " to " << receiver << endl;
     auto client = client_vec[sender];
     auto msg    = std::make_shared<Message>();
-    msg->set_type(Message_MessageType_LOBBY_BROADCAST);
+    msg->set_type(Message_MessageType_SERVER_BROADCAST);
     msg->set_sender(sender + 10);
 
     msg->set_msg(to_string(sender));
@@ -121,6 +121,7 @@ shared_ptr<TcpClient> NewClient(EventLoop* loop, int index) {
     client->setConnectionCallback([index](const TcpConnectionPtr& conn) {
         if (conn->connected()) {
             login_request.stamp = index;
+            login_request.uid   = index % 2 + 1;
             player_info->set_nickname("player:" + to_string(index));
             auto [str, len] = formatMessage(login_request, player_info);
             conn->send(str, len);

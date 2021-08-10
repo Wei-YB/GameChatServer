@@ -27,6 +27,17 @@ void chatServer::chat::ProxyConnection::parseData(Buffer* buffer) {
     else if (header_.requestType() == RequestType::ADD_BLACK_LIST) {
         handleAddBlackList(buffer);
     }
+    else if (header_.requestType() == RequestType::DEL_BLACK_LIST) {
+        handleDelBlackList(buffer);
+    }
+    else if (header_.requestType() == RequestType::GET_BLACK_LIST) {
+        handleGetBlackList();
+    }
+    else if (header_.requestType() == RequestType::PLAYER_LIST) {
+        handlePlayerList(buffer);
+    }else {
+        buffer->retrieve(header_.data_length);
+    }
 }
 
 
@@ -85,6 +96,40 @@ void chatServer::chat::ProxyConnection::handleChat(Buffer* buffer) {
     msg->set_stamp(now());
     lobby_.newMessage(std::move(msg));
     buffer->retrieve(header_.data_length);
+}
+
+void chatServer::chat::ProxyConnection::handleAddBlackList(Buffer* buffer) {
+    auto info = std::make_shared<PlayerInfo>();
+    info->ParseFromString(buffer->retrieveAsString(header_.data_length));
+    // auto black_player = info->uid();
+    lobby_.addBlackList(header_.uid, info);
+    auto response         = header_;
+    response.request_type = 0;
+    sendMessage(formatMessage(response));
+}
+
+void chatServer::chat::ProxyConnection::handleDelBlackList(Buffer* buffer) {
+    PlayerInfo info;
+    info.ParseFromString(buffer->retrieveAsString(header_.data_length));
+    auto black_player = info.uid();
+    lobby_.delBlackList(header_.uid, black_player);
+    auto response         = header_;
+    response.request_type = 0;
+    sendMessage(formatMessage(response));
+}
+
+void chatServer::chat::ProxyConnection::handleGetBlackList() {
+    auto player_list = lobby_.getBlackList(header_.uid);
+    auto response    = header_;
+    response.setOk();
+    sendMessage(formatMessage(response, player_list));
+}
+
+void chatServer::chat::ProxyConnection::handlePlayerList(Buffer* buffer) const {
+    const auto player_list = lobby_.getOnlineList();
+    auto response          = header_;
+    response.setOk();
+    sendMessage(formatMessage(response, player_list));
 }
 
 // void chatServer::chat::ProxyConnection::handleMessageQueue() {

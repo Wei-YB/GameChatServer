@@ -35,6 +35,17 @@ public:
 
     void start(muduo::net::EventLoop* loop);
 
+    std::shared_ptr<PlayerList> getOnlineList() const {
+        auto ret = std::make_shared<PlayerList>();
+        for (auto [uid, info] : local_players_) {
+            auto player = ret->add_players();
+            player->set_uid(info->uid());
+            player->set_nickname(info->info().nickname());
+            player->set_signuptime(info->info().signuptime());
+        }
+        return ret;
+    }
+
 private:
     int initBlackList(int uid, redisReply* reply);
 
